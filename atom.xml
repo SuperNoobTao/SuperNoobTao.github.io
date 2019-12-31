@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2019-12-31T14:04:23.338Z</updated>
+  <updated>2019-12-31T16:20:42.072Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,111 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>unicode编码</title>
+    <link href="http://yoursite.com/2020/01/01/unicode%E7%BC%96%E7%A0%81/"/>
+    <id>http://yoursite.com/2020/01/01/unicode%E7%BC%96%E7%A0%81/</id>
+    <published>2019-12-31T16:15:46.000Z</published>
+    <updated>2019-12-31T16:20:42.072Z</updated>
+    
+    <content type="html"><![CDATA[<ol><li><p>这个世界上从来没有纯文本这回事，如果你想读出一个字符串，你必须知道它的编码。</p></li><li><p>Unicode是一个简单的标准，用来把字符映射到数字上。Unicode协会的人会帮你处理所有幕后的问题，包括为新字符指定编码。</p></li><li><p>Unicode并不告诉你字符是怎么编码成字节的。这是被编码方案决定的，通过UTF来指定。</p></li></ol><p>还有最重要的：</p><ol start="4"><li><p>永远记得通过Content-Type或者meta charset标签来显式指定你的文档的编码。这样浏览器就不需要猜测你使用的编码了，他们会准确的使用你指定的编码来渲染文档。</p><a id="more"></a></li></ol><p>计算机内只有0，1，使用0，1的组合来表示各种事务</p><p>ASCALL码，有8位，首位统一规定为0，那么，就是可以表示128个字符，在英文中是够了，对于其他语言远远不够，人们开始利用首位的1来表示更多的字符，这样就能表示256个字符，但是每个国家所要表示的字符不一样，中国需要表示汉字，别的国家不需要啊。所以在俄罗斯144可能表示‘ђ’，在阿拉伯可能表示 ‘گ’。而且中国的汉字太多了，256根本不能满足，所以人们开始用2个字节来表示字符。如果想把软件卖到国外，那么就需要一张内码表，转换为相应国家的字符。</p><p>UNICODE码，unicode的思想很简单，只是为每个字符都规定一个用来表示该字符的数字，just that。它不涉及到字符的存储，所以需要引入utf编码来帮助unicode字符的存储。那么问题来了。unicode中字符有些是1个字节，有些是2个字节。比如你给了2个字节，计算机如何知道你这2个字节表示的是一个字符还是两个字符呢？解决方案有一：假设unicode一共是4个字节这么大， 那直接用4个字节来表示一个字符不就完美统一了吗？计算机每次都会读4个字节然后解析得到相应的字符。但是这样产生了一个问题，那就是存储空间的浪费，如果是一个英文文档（只用一个字节来表示即可），活生生大了三倍。</p><p>utf-8，utf-16横空出世。它会为机器编码为不定长度，节省空间且向后兼容</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;ol&gt;
+&lt;li&gt;&lt;p&gt;这个世界上从来没有纯文本这回事，如果你想读出一个字符串，你必须知道它的编码。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Unicode是一个简单的标准，用来把字符映射到数字上。Unicode协会的人会帮你处理所有幕后的问题，包括为新字符指定编码。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;Unicode并不告诉你字符是怎么编码成字节的。这是被编码方案决定的，通过UTF来指定。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;还有最重要的：&lt;/p&gt;
+&lt;ol start=&quot;4&quot;&gt;
+&lt;li&gt;&lt;p&gt;永远记得通过Content-Type或者meta charset标签来显式指定你的文档的编码。这样浏览器就不需要猜测你使用的编码了，他们会准确的使用你指定的编码来渲染文档。&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>网页无法播放h265格式视频</title>
+    <link href="http://yoursite.com/2019/12/31/%E7%BD%91%E9%A1%B5%E6%97%A0%E6%B3%95%E6%92%AD%E6%94%BEh265%E6%A0%BC%E5%BC%8F%E8%A7%86%E9%A2%91/"/>
+    <id>http://yoursite.com/2019/12/31/%E7%BD%91%E9%A1%B5%E6%97%A0%E6%B3%95%E6%92%AD%E6%94%BEh265%E6%A0%BC%E5%BC%8F%E8%A7%86%E9%A2%91/</id>
+    <published>2019-12-31T15:59:04.000Z</published>
+    <updated>2019-12-31T16:06:29.989Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在之前一段时间，运营同学频频跟我们说，在后台管理有几个文章中都存在着视频显示为音频无法在H5上播放的问题，部分存在在ios客户端打开视频为黑屏状态</p><a id="more"></a><h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>查看这几个视频的编码，发现是H265，而正常显示的视频编码为H264。经查询资料后发现：H265是一个新的视频编码标准，它的压缩效率，鲁棒性以及错误恢复能力都相较于H264高。但是在chrome中是暂不支持这种视频格式的，且在客户端中的支持情况也是对旧版本不支持：</p><p>ios:phone7 ↑ 等</p><p>Android:5.0 ↑ 等</p><h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><p>需要在视频上传时进行转码处理，后台接收到视频时，触发一个异步任务，将视频交由阿里云[媒体处理]，阿里云[媒体处理]会根据传过去的视频，进行转码从而生成一个H264格式的视频。</p><h2 id="相关资料"><a href="#相关资料" class="headerlink" title="相关资料"></a>相关资料</h2><p><a href="https://segmentfault.com/a/1190000017187346?utm_source=tag-newest" target="_blank" rel="noopener">https://segmentfault.com/a/1190000017187346?utm_source=tag-newest </a></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;在之前一段时间，运营同学频频跟我们说，在后台管理有几个文章中都存在着视频显示为音频无法在H5上播放的问题，部分存在在ios客户端打开视频为黑屏状态&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>.class打开显示泛型</title>
+    <link href="http://yoursite.com/2019/12/31/class%E6%96%87%E4%BB%B6%E6%89%93%E5%BC%80%E6%98%BE%E7%A4%BA%E6%B3%9B%E5%9E%8B/"/>
+    <id>http://yoursite.com/2019/12/31/class%E6%96%87%E4%BB%B6%E6%89%93%E5%BC%80%E6%98%BE%E7%A4%BA%E6%B3%9B%E5%9E%8B/</id>
+    <published>2019-12-31T15:49:52.000Z</published>
+    <updated>2019-12-31T15:58:24.053Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>编写了一个java文件，文件中有泛型，但在编译后，用idea打开，竟然还显示泛型，觉得蛮奇怪的。</p><a id="more"></a><h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>之前看过，编译过后泛型是肯定会消失的，那么有可能是idea反编译器太智能了…</p><p>##解决</p><p>下载Beyond Compare来查看.class文件，查看确实没有泛型了。那为什么idea的反编译工具能解析得到泛型呢？使用java自带的反编译工具javap -c 来进行反编译，得到：</p><p><img src="/2019/12/31/class%E6%96%87%E4%BB%B6%E6%89%93%E5%BC%80%E6%98%BE%E7%A4%BA%E6%B3%9B%E5%9E%8B/fanxing.jpg" alt="img"></p><p>虽然不是很能看懂java自带的反编译工具编译出来的结果，但是可以得到的结论是，从不同的反编译工具中可以看出，至少反编译工具是可以从class文件中找到你之前使用的泛型的，证明文件中是存在标记来记录这个泛型的，然后从javap中我们可以看出，虽然泛型不在代码中了，但是他还是记录在了注释中，这样就可以解释通为什么有的反编译工具可以反显示泛型了。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;编写了一个java文件，文件中有泛型，但在编译后，用idea打开，竟然还显示泛型，觉得蛮奇怪的。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>emoji表情md5签名不一致</title>
+    <link href="http://yoursite.com/2019/12/31/emoji%E8%A1%A8%E6%83%85md5%E7%AD%BE%E5%90%8D%E4%B8%8D%E4%B8%80%E8%87%B4/"/>
+    <id>http://yoursite.com/2019/12/31/emoji%E8%A1%A8%E6%83%85md5%E7%AD%BE%E5%90%8D%E4%B8%8D%E4%B8%80%E8%87%B4/</id>
+    <published>2019-12-31T15:23:18.000Z</published>
+    <updated>2019-12-31T15:46:00.691Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>和前端同学在联调时，发现只要传了emoji都会报签名不一致的问题。猜测是签名的算法不同导致的。</p><a id="more"></a><h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>###Md5计算过程</p><ol><li>首先需要将加密的字符串按规则转为二进制，初始字符都是Unicode，只是utf-8，能减小存储的代价。</li><li>按utf-8转为二进制后，就开始了md5的加密。</li></ol><p>经过查看前端同学的加密方法，得知错误出现在前端对字符串转二进制编码的处理上，在用<code>utf-8</code>转为二进制编码时，用的方法有问题，导致对emoji表情的编码错误，得到了错误了二进制编码，从而与服务端的签名不一致。</p><p>###加密过程</p><ol><li>需要对512取余为448，填充方法是补一个1，然后用0补全。</li><li>用64位来记录信息的长度，放在最后面，这样信息长度就变为N<em>512+448+64=(N+1)</em>512位。</li><li>装入4个幻数。</li><li>四轮循环运算（循环的次数是n+1）。</li></ol><p>1）将每一512字节细分成16个小组，每个小组32位（4个字节）</p><p>2）先认识四个线性函数(&amp;是与,|是或,~是非,^是异或)</p><p>3）设Mj表示消息的第j个子分组（从0到15），&lt;&lt;</p><p>FF(a,b,c,d,Mj,s,ti)表示a=b+((a+F(b,c,d)+Mj+ti)&lt;&lt;&lt;s)</p><p>GG(a,b,c,d,Mj,s,ti)表示a=b+((a+G(b,c,d)+Mj+ti)&lt;&lt;&lt;s)</p><p>HH(a,b,c,d,Mj,s,ti)表示a=b+((a+H(b,c,d)+Mj+ti)&lt;&lt;&lt;s)</p><p>II(a,b,c,d,Mj,s,ti)表示a=b+((a+I(b,c,d)+Mj+ti)&lt;&lt;&lt;s)</p><p>4）四轮运算</p><p>第一轮</p><p>a=FF(a,b,c,d,M0,7,0xd76aa478)</p><p>b=FF(d,a,b,c,M1,12,0xe8c7b756)</p><p>c=FF(c,d,a,b,M2,17,0x242070db)</p><p>d=FF(b,c,d,a,M3,22,0xc1bdceee)</p><p>a=FF(a,b,c,d,M4,7,0xf57c0faf)</p><p>b=FF(d,a,b,c,M5,12,0x4787c62a)</p><p>c=FF(c,d,a,b,M6,17,0xa8304613)</p><p>d=FF(b,c,d,a,M7,22,0xfd469501)</p><p>a=FF(a,b,c,d,M8,7,0x698098d8)</p><p>b=FF(d,a,b,c,M9,12,0x8b44f7af)</p><p>c=FF(c,d,a,b,M10,17,0xffff5bb1)</p><p>d=FF(b,c,d,a,M11,22,0x895cd7be)</p><p>a=FF(a,b,c,d,M12,7,0x6b901122)</p><p>b=FF(d,a,b,c,M13,12,0xfd987193)</p><p>c=FF(c,d,a,b,M14,17,0xa679438e)</p><p>d=FF(b,c,d,a,M15,22,0x49b40821)</p><p>第二轮</p><p>a=GG(a,b,c,d,M1,5,0xf61e2562)</p><p>b=GG(d,a,b,c,M6,9,0xc040b340)</p><p>c=GG(c,d,a,b,M11,14,0x265e5a51)</p><p>d=GG(b,c,d,a,M0,20,0xe9b6c7aa)</p><p>a=GG(a,b,c,d,M5,5,0xd62f105d)</p><p>b=GG(d,a,b,c,M10,9,0x02441453)</p><p>c=GG(c,d,a,b,M15,14,0xd8a1e681)</p><p>d=GG(b,c,d,a,M4,20,0xe7d3fbc8)</p><p>a=GG(a,b,c,d,M9,5,0x21e1cde6)</p><p>b=GG(d,a,b,c,M14,9,0xc33707d6)</p><p>c=GG(c,d,a,b,M3,14,0xf4d50d87)</p><p>d=GG(b,c,d,a,M8,20,0x455a14ed)</p><p>a=GG(a,b,c,d,M13,5,0xa9e3e905)</p><p>b=GG(d,a,b,c,M2,9,0xfcefa3f8)</p><p>c=GG(c,d,a,b,M7,14,0x676f02d9)</p><p>d=GG(b,c,d,a,M12,20,0x8d2a4c8a)</p><p>第三轮</p><p>a=HH(a,b,c,d,M5,4,0xfffa3942)</p><p>b=HH(d,a,b,c,M8,11,0x8771f681)</p><p>c=HH(c,d,a,b,M11,16,0x6d9d6122)</p><p>d=HH(b,c,d,a,M14,23,0xfde5380c)</p><p>a=HH(a,b,c,d,M1,4,0xa4beea44)</p><p>b=HH(d,a,b,c,M4,11,0x4bdecfa9)</p><p>c=HH(c,d,a,b,M7,16,0xf6bb4b60)</p><p>d=HH(b,c,d,a,M10,23,0xbebfbc70)</p><p>a=HH(a,b,c,d,M13,4,0x289b7ec6)</p><p>b=HH(d,a,b,c,M0,11,0xeaa127fa)</p><p>c=HH(c,d,a,b,M3,16,0xd4ef3085)</p><p>d=HH(b,c,d,a,M6,23,0x04881d05)</p><p>a=HH(a,b,c,d,M9,4,0xd9d4d039)</p><p>b=HH(d,a,b,c,M12,11,0xe6db99e5)</p><p>c=HH(c,d,a,b,M15,16,0x1fa27cf8)</p><p>d=HH(b,c,d,a,M2,23,0xc4ac5665)</p><p>第四轮</p><p>a=II(a,b,c,d,M0,6,0xf4292244)</p><p>b=II(d,a,b,c,M7,10,0x432aff97)</p><p>c=II(c,d,a,b,M14,15,0xab9423a7)</p><p>d=II(b,c,d,a,M5,21,0xfc93a039)</p><p>a=II(a,b,c,d,M12,6,0x655b59c3)</p><p>b=II(d,a,b,c,M3,10,0x8f0ccc92)</p><p>c=II(c,d,a,b,M10,15,0xffeff47d)</p><p>d=II(b,c,d,a,M1,21,0x85845dd1)</p><p>a=II(a,b,c,d,M8,6,0x6fa87e4f)</p><p>b=II(d,a,b,c,M15,10,0xfe2ce6e0)</p><p>c=II(c,d,a,b,M6,15,0xa3014314)</p><p>d=II(b,c,d,a,M13,21,0x4e0811a1)</p><p>a=II(a,b,c,d,M4,6,0xf7537e82)</p><p>b=II(d,a,b,c,M11,10,0xbd3af235)</p><p>c=II(c,d,a,b,M2,15,0x2ad7d2bb)</p><p>d=II(b,c,d,a,M9,21,0xeb86d391)</p><p>4）每轮循环后，将A，B，C，D分别加上a，b，c，d，然后进入下一循环。</p><h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><p>采用<a href="https://github.com/emn178/js-md5此md5编码库得到正确的二进制编码" target="_blank" rel="noopener">https://github.com/emn178/js-md5此md5编码库得到正确的二进制编码</a></p><h2 id="相关资料"><a href="#相关资料" class="headerlink" title="相关资料"></a>相关资料</h2><p><a href="https://blog.csdn.net/xuejianbest/article/details/80391237" target="_blank" rel="noopener">https://blog.csdn.net/xuejianbest/article/details/80391237</a></p><p><a href="https://blog.csdn.net/lidongli1060939183/article/details/85679450" target="_blank" rel="noopener">https://blog.csdn.net/lidongli1060939183/article/details/85679450</a></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;和前端同学在联调时，发现只要传了emoji都会报签名不一致的问题。猜测是签名的算法不同导致的。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>docker no route host</title>
+    <link href="http://yoursite.com/2019/12/31/docker-no-route-host/"/>
+    <id>http://yoursite.com/2019/12/31/docker-no-route-host/</id>
+    <published>2019-12-31T14:51:40.000Z</published>
+    <updated>2019-12-31T15:20:41.908Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在使用docker部署redis时，我使用了 <code>docker run -p 6379:6379 ...</code>的命令，在docker中以6379的端口暴露给外部，但是应用A在启动时通过却连接不上redis，查看日志报错 <code>no route host</code>。之后使用客户端连接工具发现也是连不上。</p><a id="more"></a><h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>docker进程在启动时，会创建一个docker0网桥，应用A连接redis时，会从docker0网桥到宿主机，这时候宿主机的防火墙就会拦截，需要设置防火墙对docker0网络环境的接受。</p><p><img src="/2019/12/31/docker-no-route-host/1577804992(1).jpg" alt="img"></p><h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><ol><li><p>设置为network=host</p></li><li><p>使用link 或者add-host</p></li></ol><h2 id="相关资料"><a href="#相关资料" class="headerlink" title="相关资料"></a>相关资料</h2><p><a href="https://stackoverflow.com/questions/27654453/no-route-to-host-between-2-docker-containers-in-same-host" target="_blank" rel="noopener">https://stackoverflow.com/questions/27654453/no-route-to-host-between-2-docker-containers-in-same-host</a></p><p><a href="https://www.jianshu.com/p/96aebba5d3cc" target="_blank" rel="noopener">https://www.jianshu.com/p/96aebba5d3cc</a></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;在使用docker部署redis时，我使用了 &lt;code&gt;docker run -p 6379:6379 ...&lt;/code&gt;的命令，在docker中以6379的端口暴露给外部，但是应用A在启动时通过却连接不上redis，查看日志报错 &lt;code&gt;no route host&lt;/code&gt;。之后使用客户端连接工具发现也是连不上。&lt;/p&gt;
+    
+    </summary>
+    
+    
+    
+  </entry>
   
   <entry>
     <title>docker悬空镜像占满磁盘</title>
@@ -124,9 +229,9 @@
     <link href="http://yoursite.com/2019/12/31/feignClient%E4%B8%80%E5%AE%9A%E8%A6%81%E4%BC%A0requestParam%E7%9A%84value/"/>
     <id>http://yoursite.com/2019/12/31/feignClient%E4%B8%80%E5%AE%9A%E8%A6%81%E4%BC%A0requestParam%E7%9A%84value/</id>
     <published>2019-12-31T10:31:23.000Z</published>
-    <updated>2019-12-31T14:17:58.464Z</updated>
+    <updated>2019-12-31T16:08:49.104Z</updated>
     
-    <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>这个问题是源于，在开发过程中，有同事在使用feignClient时对参数加上了@requestParam，但是没有加value属性，导致发布时出错。离奇的点是在本地启动是没有问题的。在上网查了一下，通篇全都在说加上value就好了，都没有说明原因（内心os：这TM谁不知道啊）。在用google搜索时第一篇stackOverFlow上的问题说明了缘由，所以说程序员还是得用google。</p><a id="more"></a><h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><table><thead><tr><th align="left">标题</th><th>内容</th></tr></thead><tbody><tr><td align="left">问题描述</td><td>feignClient在没有设置@requestParam的value情况下启动报错，显示错误：Caused by: java.lang.IllegalStateException: RequestParam.value() was empty on parameter 0 。为什么平时在controller中写接口时，不指定requestParam的value是可以的，而在feignClient中就不行呢？</td></tr><tr><td align="left">原因</td><td>Spring MVC和feignClient其实用的都是同一套ParameterNameDiscoverer，它通过以下两个步骤来获取参数名称：1.使用StandardReflectionParameterNameDiscoverer，它通过反射机制来寻找变量名，只有在编译时加入了-parameters参数才会生效。2.如果失败了，它会使用LocalVariableTableParameterNameDiscoverer通过带有ASM库的java类中的调试信息来寻找变量名称。SpringMvc和feignClient的不同之处就在这里。feignClient在接口上上使用注释在方法上的像@requestParam这样的参数，但是我们在SpringMvc是在类上使用注释的。不幸的是，javac编译器会因为接口而忽略调试信息上的参数名称。换句话说，如果你使用-parameters参数来编译你的代码，那么SpringMvc和Feign都能成功获取到参数名称，但是如果你没有用-parameters,那么只有SpringMvc能正常获取到。总而言之，这不是一个bug，这只是使用Feign的一个局限性吧（我觉得）</td></tr><tr><td align="left">问题解决</td><td>加上value</td></tr><tr><td align="left">课外时间</td><td><a href="https://www.jianshu.com/p/f569c5705e8a" target="_blank" rel="noopener">https://www.jianshu.com/p/f569c5705e8a</a><br><a href="https://stackoverflow.com/questions/44313482/feign-client-with-spring-boot-requestparam-value-was-empty-on-parameter-0" target="_blank" rel="noopener">https://stackoverflow.com/questions/44313482/feign-client-with-spring-boot-requestparam-value-was-empty-on-parameter-0</a><br><a href="https://stackoverflow.com/questions/18155032/localvariabletableparameternamediscoverer-does-not-work" target="_blank" rel="noopener">https://stackoverflow.com/questions/18155032/localvariabletableparameternamediscoverer-does-not-work</a></td></tr></tbody></table>]]></content>
+    <content type="html"><![CDATA[<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>这个问题是源于，在开发过程中，有同事在使用feignClient时对参数加上了@requestParam，但是没有加value属性，导致发布时出错。离奇的点是在本地启动是没有问题的。在上网查了一下，通篇全都在说加上value就好了，都没有说明原因（内心os：这TM谁不知道啊）。在用google搜索时第一篇stackOverFlow上的问题说明了缘由，所以说程序员还是得用google。</p><a id="more"></a><p>feignClient在没有设置@requestParam的value情况下启动报错，显示错误：Caused by: java.lang.IllegalStateException: RequestParam.value() was empty on parameter 0 。为什么平时在controller中写接口时，不指定requestParam的value是可以的，而在feignClient中就不行呢？</p><p>##原因</p><p>Spring MVC和feignClient其实用的都是同一套ParameterNameDiscoverer，它通过以下两个步骤来获取参数名称：</p><ol><li><p>使用StandardReflectionParameterNameDiscoverer，它通过反射机制来寻找变量名，只有在编译时加入了-parameters参数才会生效。</p></li><li><p>如果失败了，它会使用LocalVariableTableParameterNameDiscoverer通过带有ASM库的java类中的调试信息来寻找变量名称。</p></li></ol><p>SpringMvc和feignClient的不同之处就在这里。feignClient在接口上上使用注释在方法上的像@requestParam这样的参数，但是我们在SpringMvc是在类上使用注释的。不幸的是，javac编译器会因为接口而忽略调试信息上的参数名称。换句话说，如果你使用-parameters参数来编译你的代码，那么SpringMvc和Feign都能成功获取到参数名称，但是如果你没有用-parameters,那么只有SpringMvc能正常获取到。总而言之，这不是一个bug，这只是使用Feign的一个局限性吧（我觉得）</p><h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><ol><li><p>加上value</p></li><li><p>在编译时加入了-parameters参数</p></li></ol><h2 id="相关资料"><a href="#相关资料" class="headerlink" title="相关资料"></a>相关资料</h2><p><a href="https://www.jianshu.com/p/f569c5705e8a" target="_blank" rel="noopener">https://www.jianshu.com/p/f569c5705e8a</a></p><p><a href="https://stackoverflow.com/questions/44313482/feign-client-with-spring-boot-requestparam-value-was-empty-on-parameter-0" target="_blank" rel="noopener">https://stackoverflow.com/questions/44313482/feign-client-with-spring-boot-requestparam-value-was-empty-on-parameter-0</a></p><p><a href="https://stackoverflow.com/questions/18155032/localvariabletableparameternamediscoverer-does-not-work" target="_blank" rel="noopener">https://stackoverflow.com/questions/18155032/localvariabletableparameternamediscoverer-does-not-work</a></p>]]></content>
     
     <summary type="html">
     

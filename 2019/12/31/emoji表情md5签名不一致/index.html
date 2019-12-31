@@ -51,18 +51,18 @@
   };
 </script>
 
-  <meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
+  <meta name="description" content="背景和前端同学在联调时，发现只要传了emoji都会报签名不一致的问题。猜测是签名的算法不同导致的。">
 <meta name="keywords" content="程序员">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;14&#x2F;hello-world&#x2F;index.html">
+<meta property="og:title" content="emoji表情md5签名不一致">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;12&#x2F;31&#x2F;emoji%E8%A1%A8%E6%83%85md5%E7%AD%BE%E5%90%8D%E4%B8%8D%E4%B8%80%E8%87%B4&#x2F;index.html">
 <meta property="og:site_name" content="业精于勤荒于嬉">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
+<meta property="og:description" content="背景和前端同学在联调时，发现只要传了emoji都会报签名不一致的问题。猜测是签名的算法不同导致的。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-11-14T06:16:17.529Z">
+<meta property="og:updated_time" content="2019-12-31T15:46:00.691Z">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://yoursite.com/2019/11/14/hello-world/">
+<link rel="canonical" href="http://yoursite.com/2019/12/31/emoji%E8%A1%A8%E6%83%85md5%E7%AD%BE%E5%90%8D%E4%B8%8D%E4%B8%80%E8%87%B4/">
 
 
 <script id="page-configurations">
@@ -76,7 +76,7 @@
   };
 </script>
 
-  <title>Hello World | 业精于勤荒于嬉</title>
+  <title>emoji表情md5签名不一致 | 业精于勤荒于嬉</title>
   
 
 
@@ -221,7 +221,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/14/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/31/emoji%E8%A1%A8%E6%83%85md5%E7%AD%BE%E5%90%8D%E4%B8%8D%E4%B8%80%E8%87%B4/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/head.gif">
@@ -234,7 +234,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Hello World
+          emoji表情md5签名不一致
         </h1>
 
         <div class="post-meta">
@@ -245,7 +245,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2019-11-14 12:44:46 / 修改时间：14:16:17" itemprop="dateCreated datePublished" datetime="2019-11-14T12:44:46+08:00">2019-11-14</time>
+              <time title="创建时间：2019-12-31 23:23:18 / 修改时间：23:46:00" itemprop="dateCreated datePublished" datetime="2019-12-31T23:23:18+08:00">2019-12-31</time>
             </span>
 
           
@@ -261,14 +261,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>357</span>
+              <span>2.8k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>3 分钟</span>
             </span>
 
         </div>
@@ -280,21 +280,102 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>和前端同学在联调时，发现只要传了emoji都会报签名不一致的问题。猜测是签名的算法不同导致的。</p>
 <a id="more"></a>
 
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+<h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>###Md5计算过程</p>
+<ol>
+<li>首先需要将加密的字符串按规则转为二进制，初始字符都是Unicode，只是utf-8，能减小存储的代价。</li>
+<li>按utf-8转为二进制后，就开始了md5的加密。</li>
+</ol>
+<p>经过查看前端同学的加密方法，得知错误出现在前端对字符串转二进制编码的处理上，在用<code>utf-8</code>转为二进制编码时，用的方法有问题，导致对emoji表情的编码错误，得到了错误了二进制编码，从而与服务端的签名不一致。</p>
+<p>###加密过程</p>
+<ol>
+<li>需要对512取余为448，填充方法是补一个1，然后用0补全。</li>
+<li>用64位来记录信息的长度，放在最后面，这样信息长度就变为N<em>512+448+64=(N+1)</em>512位。</li>
+<li>装入4个幻数。</li>
+<li>四轮循环运算（循环的次数是n+1）。</li>
+</ol>
+<p>1）将每一512字节细分成16个小组，每个小组32位（4个字节）</p>
+<p>2）先认识四个线性函数(&amp;是与,|是或,~是非,^是异或)</p>
+<p>3）设Mj表示消息的第j个子分组（从0到15），&lt;&lt;</p>
+<p>FF(a,b,c,d,Mj,s,ti)表示a=b+((a+F(b,c,d)+Mj+ti)&lt;&lt;&lt;s)</p>
+<p>GG(a,b,c,d,Mj,s,ti)表示a=b+((a+G(b,c,d)+Mj+ti)&lt;&lt;&lt;s)</p>
+<p>HH(a,b,c,d,Mj,s,ti)表示a=b+((a+H(b,c,d)+Mj+ti)&lt;&lt;&lt;s)</p>
+<p>II(a,b,c,d,Mj,s,ti)表示a=b+((a+I(b,c,d)+Mj+ti)&lt;&lt;&lt;s)</p>
+<p>4）四轮运算</p>
+<p>第一轮</p>
+<p>a=FF(a,b,c,d,M0,7,0xd76aa478)</p>
+<p>b=FF(d,a,b,c,M1,12,0xe8c7b756)</p>
+<p>c=FF(c,d,a,b,M2,17,0x242070db)</p>
+<p>d=FF(b,c,d,a,M3,22,0xc1bdceee)</p>
+<p>a=FF(a,b,c,d,M4,7,0xf57c0faf)</p>
+<p>b=FF(d,a,b,c,M5,12,0x4787c62a)</p>
+<p>c=FF(c,d,a,b,M6,17,0xa8304613)</p>
+<p>d=FF(b,c,d,a,M7,22,0xfd469501)</p>
+<p>a=FF(a,b,c,d,M8,7,0x698098d8)</p>
+<p>b=FF(d,a,b,c,M9,12,0x8b44f7af)</p>
+<p>c=FF(c,d,a,b,M10,17,0xffff5bb1)</p>
+<p>d=FF(b,c,d,a,M11,22,0x895cd7be)</p>
+<p>a=FF(a,b,c,d,M12,7,0x6b901122)</p>
+<p>b=FF(d,a,b,c,M13,12,0xfd987193)</p>
+<p>c=FF(c,d,a,b,M14,17,0xa679438e)</p>
+<p>d=FF(b,c,d,a,M15,22,0x49b40821)</p>
+<p>第二轮</p>
+<p>a=GG(a,b,c,d,M1,5,0xf61e2562)</p>
+<p>b=GG(d,a,b,c,M6,9,0xc040b340)</p>
+<p>c=GG(c,d,a,b,M11,14,0x265e5a51)</p>
+<p>d=GG(b,c,d,a,M0,20,0xe9b6c7aa)</p>
+<p>a=GG(a,b,c,d,M5,5,0xd62f105d)</p>
+<p>b=GG(d,a,b,c,M10,9,0x02441453)</p>
+<p>c=GG(c,d,a,b,M15,14,0xd8a1e681)</p>
+<p>d=GG(b,c,d,a,M4,20,0xe7d3fbc8)</p>
+<p>a=GG(a,b,c,d,M9,5,0x21e1cde6)</p>
+<p>b=GG(d,a,b,c,M14,9,0xc33707d6)</p>
+<p>c=GG(c,d,a,b,M3,14,0xf4d50d87)</p>
+<p>d=GG(b,c,d,a,M8,20,0x455a14ed)</p>
+<p>a=GG(a,b,c,d,M13,5,0xa9e3e905)</p>
+<p>b=GG(d,a,b,c,M2,9,0xfcefa3f8)</p>
+<p>c=GG(c,d,a,b,M7,14,0x676f02d9)</p>
+<p>d=GG(b,c,d,a,M12,20,0x8d2a4c8a)</p>
+<p>第三轮</p>
+<p>a=HH(a,b,c,d,M5,4,0xfffa3942)</p>
+<p>b=HH(d,a,b,c,M8,11,0x8771f681)</p>
+<p>c=HH(c,d,a,b,M11,16,0x6d9d6122)</p>
+<p>d=HH(b,c,d,a,M14,23,0xfde5380c)</p>
+<p>a=HH(a,b,c,d,M1,4,0xa4beea44)</p>
+<p>b=HH(d,a,b,c,M4,11,0x4bdecfa9)</p>
+<p>c=HH(c,d,a,b,M7,16,0xf6bb4b60)</p>
+<p>d=HH(b,c,d,a,M10,23,0xbebfbc70)</p>
+<p>a=HH(a,b,c,d,M13,4,0x289b7ec6)</p>
+<p>b=HH(d,a,b,c,M0,11,0xeaa127fa)</p>
+<p>c=HH(c,d,a,b,M3,16,0xd4ef3085)</p>
+<p>d=HH(b,c,d,a,M6,23,0x04881d05)</p>
+<p>a=HH(a,b,c,d,M9,4,0xd9d4d039)</p>
+<p>b=HH(d,a,b,c,M12,11,0xe6db99e5)</p>
+<p>c=HH(c,d,a,b,M15,16,0x1fa27cf8)</p>
+<p>d=HH(b,c,d,a,M2,23,0xc4ac5665)</p>
+<p>第四轮</p>
+<p>a=II(a,b,c,d,M0,6,0xf4292244)</p>
+<p>b=II(d,a,b,c,M7,10,0x432aff97)</p>
+<p>c=II(c,d,a,b,M14,15,0xab9423a7)</p>
+<p>d=II(b,c,d,a,M5,21,0xfc93a039)</p>
+<p>a=II(a,b,c,d,M12,6,0x655b59c3)</p>
+<p>b=II(d,a,b,c,M3,10,0x8f0ccc92)</p>
+<p>c=II(c,d,a,b,M10,15,0xffeff47d)</p>
+<p>d=II(b,c,d,a,M1,21,0x85845dd1)</p>
+<p>a=II(a,b,c,d,M8,6,0x6fa87e4f)</p>
+<p>b=II(d,a,b,c,M15,10,0xfe2ce6e0)</p>
+<p>c=II(c,d,a,b,M6,15,0xa3014314)</p>
+<p>d=II(b,c,d,a,M13,21,0x4e0811a1)</p>
+<p>a=II(a,b,c,d,M4,6,0xf7537e82)</p>
+<p>b=II(d,a,b,c,M11,10,0xbd3af235)</p>
+<p>c=II(c,d,a,b,M2,15,0x2ad7d2bb)</p>
+<p>d=II(b,c,d,a,M9,21,0xeb86d391)</p>
+<p>4）每轮循环后，将A，B，C，D分别加上a，b，c，d，然后进入下一循环。</p>
+<h2 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h2><p>采用<a href="https://github.com/emn178/js-md5此md5编码库得到正确的二进制编码" target="_blank" rel="noopener">https://github.com/emn178/js-md5此md5编码库得到正确的二进制编码</a></p>
+<h2 id="相关资料"><a href="#相关资料" class="headerlink" title="相关资料"></a>相关资料</h2><p><a href="https://blog.csdn.net/xuejianbest/article/details/80391237" target="_blank" rel="noopener">https://blog.csdn.net/xuejianbest/article/details/80391237</a></p>
+<p><a href="https://blog.csdn.net/lidongli1060939183/article/details/85679450" target="_blank" rel="noopener">https://blog.csdn.net/lidongli1060939183/article/details/85679450</a></p>
 
     </div>
 
@@ -310,13 +391,16 @@
 
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
+                <a href="/2019/12/31/docker-no-route-host/" rel="next" title="docker no route host">
+                  <i class="fa fa-chevron-left"></i> docker no route host
+                </a>
             </div>
 
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
-                <a href="/2019/11/14/%E7%AD%96%E7%95%A5%E4%B8%8E%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82/" rel="prev" title="策略与简单工厂">
-                  策略与简单工厂 <i class="fa fa-chevron-right"></i>
+                <a href="/2019/12/31/class%E6%96%87%E4%BB%B6%E6%89%93%E5%BC%80%E6%98%BE%E7%A4%BA%E6%B3%9B%E5%9E%8B/" rel="prev" title=".class打开显示泛型">
+                  .class打开显示泛型 <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>
@@ -356,7 +440,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原因"><span class="nav-number">2.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决"><span class="nav-number">3.</span> <span class="nav-text">解决</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关资料"><span class="nav-number">4.</span> <span class="nav-text">相关资料</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

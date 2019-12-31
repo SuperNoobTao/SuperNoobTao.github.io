@@ -51,18 +51,18 @@
   };
 </script>
 
-  <meta name="description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
+  <meta name="description" content="这个世界上从来没有纯文本这回事，如果你想读出一个字符串，你必须知道它的编码。  Unicode是一个简单的标准，用来把字符映射到数字上。Unicode协会的人会帮你处理所有幕后的问题，包括为新字符指定编码。  Unicode并不告诉你字符是怎么编码成字节的。这是被编码方案决定的，通过UTF来指定。   还有最重要的：  永远记得通过Content-Type或者meta charset标签来显式指">
 <meta name="keywords" content="程序员">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hello World">
-<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;14&#x2F;hello-world&#x2F;index.html">
+<meta property="og:title" content="unicode编码">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;01&#x2F;01&#x2F;unicode%E7%BC%96%E7%A0%81&#x2F;index.html">
 <meta property="og:site_name" content="业精于勤荒于嬉">
-<meta property="og:description" content="Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.">
+<meta property="og:description" content="这个世界上从来没有纯文本这回事，如果你想读出一个字符串，你必须知道它的编码。  Unicode是一个简单的标准，用来把字符映射到数字上。Unicode协会的人会帮你处理所有幕后的问题，包括为新字符指定编码。  Unicode并不告诉你字符是怎么编码成字节的。这是被编码方案决定的，通过UTF来指定。   还有最重要的：  永远记得通过Content-Type或者meta charset标签来显式指">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-11-14T06:16:17.529Z">
+<meta property="og:updated_time" content="2019-12-31T16:20:42.072Z">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://yoursite.com/2019/11/14/hello-world/">
+<link rel="canonical" href="http://yoursite.com/2020/01/01/unicode%E7%BC%96%E7%A0%81/">
 
 
 <script id="page-configurations">
@@ -76,7 +76,7 @@
   };
 </script>
 
-  <title>Hello World | 业精于勤荒于嬉</title>
+  <title>unicode编码 | 业精于勤荒于嬉</title>
   
 
 
@@ -221,7 +221,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/14/hello-world/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/01/unicode%E7%BC%96%E7%A0%81/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/head.gif">
@@ -234,7 +234,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Hello World
+          unicode编码
         </h1>
 
         <div class="post-meta">
@@ -245,7 +245,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2019-11-14 12:44:46 / 修改时间：14:16:17" itemprop="dateCreated datePublished" datetime="2019-11-14T12:44:46+08:00">2019-11-14</time>
+              <time title="创建时间：2020-01-01 00:15:46 / 修改时间：00:20:42" itemprop="dateCreated datePublished" datetime="2020-01-01T00:15:46+08:00">2020-01-01</time>
             </span>
 
           
@@ -261,7 +261,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>357</span>
+              <span>818</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -280,21 +280,25 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+        <ol>
+<li><p>这个世界上从来没有纯文本这回事，如果你想读出一个字符串，你必须知道它的编码。</p>
+</li>
+<li><p>Unicode是一个简单的标准，用来把字符映射到数字上。Unicode协会的人会帮你处理所有幕后的问题，包括为新字符指定编码。</p>
+</li>
+<li><p>Unicode并不告诉你字符是怎么编码成字节的。这是被编码方案决定的，通过UTF来指定。</p>
+</li>
+</ol>
+<p>还有最重要的：</p>
+<ol start="4">
+<li><p>永远记得通过Content-Type或者meta charset标签来显式指定你的文档的编码。这样浏览器就不需要猜测你使用的编码了，他们会准确的使用你指定的编码来渲染文档。</p>
 <a id="more"></a>
 
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+</li>
+</ol>
+<p>计算机内只有0，1，使用0，1的组合来表示各种事务</p>
+<p>ASCALL码，有8位，首位统一规定为0，那么，就是可以表示128个字符，在英文中是够了，对于其他语言远远不够，人们开始利用首位的1来表示更多的字符，这样就能表示256个字符，但是每个国家所要表示的字符不一样，中国需要表示汉字，别的国家不需要啊。所以在俄罗斯144可能表示‘ђ’，在阿拉伯可能表示 ‘گ’。而且中国的汉字太多了，256根本不能满足，所以人们开始用2个字节来表示字符。如果想把软件卖到国外，那么就需要一张内码表，转换为相应国家的字符。</p>
+<p>UNICODE码，unicode的思想很简单，只是为每个字符都规定一个用来表示该字符的数字，just that。它不涉及到字符的存储，所以需要引入utf编码来帮助unicode字符的存储。那么问题来了。unicode中字符有些是1个字节，有些是2个字节。比如你给了2个字节，计算机如何知道你这2个字节表示的是一个字符还是两个字符呢？解决方案有一：假设unicode一共是4个字节这么大， 那直接用4个字节来表示一个字符不就完美统一了吗？计算机每次都会读4个字节然后解析得到相应的字符。但是这样产生了一个问题，那就是存储空间的浪费，如果是一个英文文档（只用一个字节来表示即可），活生生大了三倍。</p>
+<p>utf-8，utf-16横空出世。它会为机器编码为不定长度，节省空间且向后兼容</p>
 
     </div>
 
@@ -310,14 +314,14 @@
 
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
+                <a href="/2019/12/31/%E7%BD%91%E9%A1%B5%E6%97%A0%E6%B3%95%E6%92%AD%E6%94%BEh265%E6%A0%BC%E5%BC%8F%E8%A7%86%E9%A2%91/" rel="next" title="网页无法播放h265格式视频">
+                  <i class="fa fa-chevron-left"></i> 网页无法播放h265格式视频
+                </a>
             </div>
 
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
-                <a href="/2019/11/14/%E7%AD%96%E7%95%A5%E4%B8%8E%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82/" rel="prev" title="策略与简单工厂">
-                  策略与简单工厂 <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
       </footer>
@@ -356,7 +360,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-a-new-post"><span class="nav-number">1.1.</span> <span class="nav-text">Create a new post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-server"><span class="nav-number">1.2.</span> <span class="nav-text">Run server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generate-static-files"><span class="nav-number">1.3.</span> <span class="nav-text">Generate static files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deploy-to-remote-sites"><span class="nav-number">1.4.</span> <span class="nav-text">Deploy to remote sites</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
