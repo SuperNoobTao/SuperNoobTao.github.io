@@ -51,18 +51,18 @@
   };
 </script>
 
-  <meta name="description" content="Elasticsearch是一个实时的分布式搜索和分析引擎。它可以帮助你用前所未有的速度去处理大规模数据。 它可以用于全文搜索，结构化搜索以及分析，当然你也可以将这三者进行组合。">
-<meta name="keywords" content="Solr,ElasticSearch">
+  <meta name="description" content="背景由于目前的需求比较重视内容推荐，之前的推荐是直接根据表中的数据直接进行查询得知，非常的粗暴且不准确（其实是一个买来的代码…），所以需要对这部分内容进行优化从而提高推荐内容的精准度，从而提高用户留存率。 方案###对于用户进行简单的建模（用户的地理位置，年龄，性别） 暂无年龄和性别，地理位置可以获取 ###热度算法 存在问题：目前每篇文章在入库时，优先级都是相等的，而正常情况下，文章的优先级应该">
+<meta name="keywords" content="程序员">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Solr or Elasticsearch">
-<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;14&#x2F;Solr-or-Elasticsearch&#x2F;index.html">
+<meta property="og:title" content="内容推荐方案调研">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;12&#x2F;31&#x2F;%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94&#x2F;index.html">
 <meta property="og:site_name" content="业精于勤荒于嬉">
-<meta property="og:description" content="Elasticsearch是一个实时的分布式搜索和分析引擎。它可以帮助你用前所未有的速度去处理大规模数据。 它可以用于全文搜索，结构化搜索以及分析，当然你也可以将这三者进行组合。">
+<meta property="og:description" content="背景由于目前的需求比较重视内容推荐，之前的推荐是直接根据表中的数据直接进行查询得知，非常的粗暴且不准确（其实是一个买来的代码…），所以需要对这部分内容进行优化从而提高推荐内容的精准度，从而提高用户留存率。 方案###对于用户进行简单的建模（用户的地理位置，年龄，性别） 暂无年龄和性别，地理位置可以获取 ###热度算法 存在问题：目前每篇文章在入库时，优先级都是相等的，而正常情况下，文章的优先级应该">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-11-14T10:45:32.078Z">
+<meta property="og:updated_time" content="2019-12-31T10:29:46.129Z">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://yoursite.com/2019/11/14/Solr-or-Elasticsearch/">
+<link rel="canonical" href="http://yoursite.com/2019/12/31/%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94/">
 
 
 <script id="page-configurations">
@@ -76,7 +76,7 @@
   };
 </script>
 
-  <title>Solr or Elasticsearch | 业精于勤荒于嬉</title>
+  <title>内容推荐方案调研 | 业精于勤荒于嬉</title>
   
 
 
@@ -221,7 +221,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/14/Solr-or-Elasticsearch/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/31/%E5%86%85%E5%AE%B9%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/head.gif">
@@ -234,7 +234,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Solr or Elasticsearch
+          内容推荐方案调研
         </h1>
 
         <div class="post-meta">
@@ -245,18 +245,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2019-11-14 18:43:57 / 修改时间：18:45:32" itemprop="dateCreated datePublished" datetime="2019-11-14T18:43:57+08:00">2019-11-14</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E/" itemprop="url" rel="index">
-                    <span itemprop="name">搜索引擎</span>
-                  </a>
-                </span>
+              <time title="创建时间：2019-12-31 18:25:47 / 修改时间：18:29:46" itemprop="dateCreated datePublished" datetime="2019-12-31T18:25:47+08:00">2019-12-31</time>
             </span>
 
           
@@ -272,14 +261,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3.6k</span>
+              <span>1.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
+              <span>1 分钟</span>
             </span>
 
         </div>
@@ -291,119 +280,54 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>Elasticsearch是一个实时的分布式搜索和分析引擎。它可以帮助你用前所未有的速度去处理大规模数据。</p>
-<p>它可以用于全文搜索，结构化搜索以及分析，当然你也可以将这三者进行组合。</p>
-<a id="more"></a>
-
-<p>Elasticsearch是一个建立在全文搜索引擎 Apache Lucene™ 基础上的搜索引擎，可以说Lucene是当今最先进，最高效的全功能开源搜索引擎框架。</p>
-<p>但是Lucene只是一个框架，要充分利用它的功能，需要使用JAVA，并且在程序中集成Lucene。需要很多的学习了解，才能明白它是如何运行的，Lucene确实非常复杂。</p>
-<p>Elasticsearch使用Lucene作为内部引擎，但是在使用它做全文搜索时，只需要使用统一做好的API即可，而不需要了解其背后复杂的Lucene的运行原理。</p>
-<p>当然Elasticsearch并不仅仅是Lucene这么简单，它不但包括了全文搜索功能，还可以进行以下工作:</p>
-<ul>
-<li>分布式实时文件存储，并将每一个字段都编入索引，使其可以被搜索。</li>
-<li>实时分析的分布式搜索引擎。</li>
-<li>可以扩展到上百台服务器，处理PB级别的结构化或非结构化数据。</li>
-</ul>
-<p>这么多的功能被集成到一台服务器上，你可以轻松地通过客户端或者任何你喜欢的程序语言与ES的RESTful API进行交流。</p>
-<p>Elasticsearch的上手是非常简单的。它附带了很多非常合理的默认值，这让初学者很好地避免一上手就要面对复杂的理论，</p>
-<p>它安装好了就可以使用了，用很小的学习成本就可以变得很有生产力。</p>
-<p>随着越学越深入，还可以利用Elasticsearch更多高级的功能，整个引擎可以很灵活地进行配置。可以根据自身需求来定制属于自己的Elasticsearch。</p>
-<p>使用案例：</p>
-<ul>
-<li>维基百科使用Elasticsearch来进行全文搜做并高亮显示关键词，以及提供search-as-you-type、did-you-mean等搜索建议功能。</li>
-<li>英国卫报使用Elasticsearch来处理访客日志，以便能将公众对不同文章的反应实时地反馈给各位编辑。</li>
-<li>StackOverflow将全文搜索与地理位置和相关信息进行结合，以提供more-like-this相关问题的展现。</li>
-<li>GitHub使用Elasticsearch来检索超过1300亿行代码。</li>
-<li>每天，Goldman      Sachs使用它来处理5TB数据的索引，还有很多投行使用它来分析股票市场的变动。</li>
-</ul>
-<p>但是Elasticsearch并不只是面向大型企业的，它还帮助了很多类似DataDog以及Klout的创业公司进行了功能的扩展。</p>
-<p>Elasticsearch的优缺点<a href="http://link.zhihu.com/?target=http%3A//stackoverflow.com/questions/10213009/solr-vs-elasticsearch">*</a><a href="http://link.zhihu.com/?target=http%3A//huangx.in/22/translation-solr-vs-elasticsearch">*</a>:</p>
-<p>优点</p>
-<ol>
-<li>Elasticsearch是分布式的。不需要其他组件，分发是实时的，被叫做”Push      replication”。</li>
-<li>Elasticsearch      完全支持 Apache Lucene 的接近实时的搜索。</li>
-<li>处理多租户（<a href="http://link.zhihu.com/?target=http%3A//en.wikipedia.org/wiki/Multitenancy">multitenancy</a>）不需要特殊配置，而Solr则需要更多的高级设置。</li>
-<li>Elasticsearch      采用 Gateway 的概念，使得完备份更加简单。</li>
-<li>各节点组成对等的网络结构，某些节点出现故障时会自动分配其他节点代替其进行工作。</li>
-</ol>
-<p>缺点</p>
-<ol>
-<li>只有一名developer（当前Elasticsearch      GitHub组织已经不只如此，已经有了相当活跃的维护者）</li>
-<li>还不够自动（不适合当前新的Index      Warmup API）</li>
-</ol>
-<p>Solr简介<a href="http://link.zhihu.com/?target=http%3A//zh.wikipedia.org/wiki/Solr">*</a></p>
-<p>Solr（读作“solar”）是Apache Lucene项目的开源企业搜索平台。其主要功能包括全文检索、命中标示、分面搜索、动态聚类、数据库集成，以及富文本（如Word、PDF）的处理。Solr是高度可扩展的，并提供了分布式搜索和索引复制。Solr是最流行的企业级搜索引擎，Solr4 还增加了NoSQL支持。</p>
-<p>Solr是用Java编写、运行在Servlet容器（如 Apache Tomcat 或Jetty）的一个独立的全文搜索服务器。 Solr采用了 Lucene Java 搜索库为核心的全文索引和搜索，并具有类似REST的HTTP/XML和JSON的API。Solr强大的外部配置功能使得无需进行Java编码，便可对其进行调整以适应多种类型的应用程序。Solr有一个插件架构，以支持更多的高级定制。</p>
-<p>因为2010年 Apache Lucene 和 Apache Solr 项目合并，两个项目是由同一个Apache软件基金会developement团队制作实现的。提到技术或产品时，Lucene/Solr或Solr/Lucene是一样的。</p>
-<p>Solr的优缺点</p>
-<p>优点</p>
-<ol>
-<li>Solr有一个更大、更成熟的用户、developer和贡献者社区。</li>
-<li>支持添加多种格式的索引，如：HTML、PDF、微软      Office 系列软件格式以及 JSON、XML、CSV 等纯文本格式。</li>
-<li>Solr比较成熟、稳定。</li>
-<li>不考虑建索引的同时进行搜索，速度更快。</li>
-</ol>
-<p>缺点</p>
-<ol>
-<li>建立索引时，搜索效率下降，实时索引搜索效率不高。</li>
-</ol>
-<p>Elasticsearch与Solr的比较<a href="http://link.zhihu.com/?target=http%3A//blog.socialcast.com/realtime-search-solr-vs-elasticsearch/">*</a></p>
-<p>当单纯的对已有数据进行搜索时，Solr更快。</p>
-<p>Search Fesh Index While Idle</p>
-<p>当实时建立索引时, Solr会产生io阻塞，查询性能较差, Elasticsearch具有明显的优势。</p>
-<p>search_fresh_index_while_indexing</p>
-<p>随着数据量的增加，Solr的搜索效率会变得更低，而Elasticsearch却没有明显的变化。</p>
-<p>search_fresh_index_while_indexing</p>
-<p>综上所述，Solr的架构不适合实时搜索的应用。</p>
-<p>实际生产环境测试<a href="http://link.zhihu.com/?target=http%3A//blog.socialcast.com/realtime-search-solr-vs-elasticsearch/">*</a></p>
-<p>下图为将搜索引擎从Solr转到Elasticsearch以后的平均查询速度有了50倍的提升。</p>
-<p>average_execution_time</p>
-<p>Elasticsearch 与 Solr 的比较总结</p>
-<ul>
-<li>二者安装都很简单；</li>
-<li>Solr      利用 Zookeeper 进行分布式管理，而 Elasticsearch 自身带有分布式协调管理功能;</li>
-<li>Solr      支持更多格式的数据，而 Elasticsearch 仅支持json文件格式；</li>
-<li>Solr      官方提供的功能更多，而 Elasticsearch 本身更注重于核心功能，高级功能多有第三方插件提供；</li>
-<li>Solr      在传统的搜索应用中表现好于 Elasticsearch，但在处理实时搜索应用时效率明显低于 Elasticsearch。</li>
-</ul>
-<p>Solr 是传统搜索应用的有力解决方案，但 Elasticsearch 更适用于新兴的实时搜索应用。</p>
-<p>其他基于Lucene的开源搜索引擎解决方案<a href="http://link.zhihu.com/?target=http%3A//mail-archives.apache.org/mod_mbox/hbase-user/201006.mbox/%253C149150.78881.qm%40web50304.mail.re2.yahoo.com%253E">*</a></p>
-<ol>
-<li>直接使用 <a href="http://link.zhihu.com/?target=http%3A//lucene.apache.org/">Lucene</a></li>
-</ol>
-<p>说明：Lucene 是一个 JAVA 搜索类库，它本身并不是一个完整的解决方案，需要额外的工作。</p>
-<p>优点：成熟的解决方案，有很多的成功案例。apache 顶级项目，正在持续快速的进步。庞大而活跃的社区，大量的developers。它只是一个类库，有足够的定制和优化空间：经过简单定制，就可以满足绝大部分常见的需求；经过优化，可以支持 10亿+ 量级的搜索。</p>
-<p>缺点：需要额外的工作。所有的扩展，分布式，可靠性等都需要自己实现；非实时，从建索引到可以搜索中间有一个时间延迟，而当前的“近实时”(Lucene Near Real Time search)搜索方案的可扩展性有待进一步完善</p>
-<ul>
-<li><a href="http://link.zhihu.com/?target=http%3A//katta.sourceforge.net/">Katta</a></li>
-</ul>
-<p>说明：基于 Lucene 的，支持分布式，可扩展，具有容错功能，准实时的搜索方案。</p>
-<p>优点：开箱即用，可以与 Hadoop 配合实现分布式。具备扩展和容错机制。</p>
-<p>缺点：只是搜索方案，建索引部分还是需要自己实现。在搜索功能上，只实现了最基本的需求。成功案例较少，项目的成熟度稍微差一些。因为需要支持分布式，对于一些复杂的查询需求，定制的难度会比较大。</p>
-<ul>
-<li><a href="http://link.zhihu.com/?target=http%3A//svn.apache.org/repos/asf/hadoop/mapreduce/trunk/src/contrib/index/README">Hadoop      contrib/index</a></li>
-</ul>
-<p>说明：Map/Reduce 模式的，分布式建索引方案，可以跟 Katta 配合使用。</p>
-<p>优点：分布式建索引，具备可扩展性。</p>
-<p>缺点：只是建索引方案，不包括搜索实现。工作在批处理模式，对实时搜索的支持不佳。</p>
-<ul>
-<li><a href="http://link.zhihu.com/?target=http%3A//sna-projects.com/">LinkedIn      的开源方案</a></li>
-</ul>
-<p>说明：基于 Lucene 的一系列解决方案，包括 准实时搜索 zoie ，facet 搜索实现 bobo ，机器学习算法 decomposer ，摘要存储库 krati ，数据库模式包装 sensei 等等</p>
-<p>优点：经过验证的解决方案，支持分布式，可扩展，丰富的功能实现</p>
-<p>缺点：与 linkedin 公司的联系太紧密，可定制性比较差</p>
-<ul>
-<li><a href="http://link.zhihu.com/?target=https%3A//github.com/tjake/Lucandra">Lucandra</a></li>
-</ul>
-<p>说明：基于 Lucene，索引存在 cassandra 数据库中</p>
-<p>优点：参考 cassandra 的优点</p>
-<p>缺点：参考 cassandra 的缺点。另外，这只是一个 demo，没有经过大量验证</p>
-<ul>
-<li><a href="http://link.zhihu.com/?target=https%3A//github.com/akkumar/hbasene">HBasene</a></li>
-</ul>
-<p>说明：基于 Lucene，索引存在 HBase 数据库中</p>
-<p>优点：参考 HBase 的优点</p>
-<p>缺点：参考 HBase 的缺点。另外，在实现中，lucene terms 是存成行，但每个 term 对应的 posting lists 是以列的方式存储的。随着单个 term 的 posting lists 的增大，查询时的速度受到的影响会非常大。</p>
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>由于目前的需求比较重视内容推荐，之前的推荐是直接根据表中的数据直接进行查询得知，非常的粗暴且不准确（其实是一个买来的代码…），所以需要对这部分内容进行优化从而提高推荐内容的精准度，从而提高用户留存率。</p>
+<h2 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h2><p>###对于用户进行简单的建模（用户的地理位置，年龄，性别）</p>
+<p>暂无年龄和性别，地理位置可以获取</p>
+<p>###热度算法</p>
+<p>存在问题：目前每篇文章在入库时，优先级都是相等的，而正常情况下，文章的优先级应该是有所区别的，比如：百度热搜上游“房租暴涨”，那么有相关文字的文章应该初始热度较高。</p>
+<p>思路：动态维护一个热词库(网上的热词)，如果能匹配热词库，那么就提高这篇文章的初始热度值，总体热度随时间呈几何衰减(根据时间衰减因子)。</p>
+<p>参考牛顿冷却定律，时间衰减因子应该是一个类似于指数函数：</p>
+<p>T(Time) = e ^ (k*(T1 – T0)) </p>
+<p>其中T0是新闻发布时间，T1是当前时间。</p>
+<p>如当前系统中EXP(-TIMESTAMPDIFF(SECOND,t.add_time,NOW())/240) 换算成以上公式为 T(Time) = 1/(e ^ (240*(T1 – T0)))</p>
+<p>###上下文因素</p>
+<p>时间(一天的某些时间段..)、地点、季节、天气。。</p>
+<p>###改进基于内容的推荐</p>
+<p>改进方面：</p>
+<p>1.算法改进</p>
+<p>2.收藏数、评论数、转发数等加入权重</p>
+<p>4.对文章的提取不是很完美（在文章分词时，最好把每个词的词频与逆文本频率也记录其中，参考：tf-idf模型）</p>
+<p>###基于协同过滤的推荐</p>
+<p>文章的基数量太大（不适用对物品的协同过滤），比较适用对用户的协同过滤，取得相似用户，将其内容推荐给相似用户，需要加入时间衰减因子。</p>
+<p>算法：</p>
+<p>1.皮尔逊相关系数 </p>
+<p>2.余弦相似度 </p>
+<p>3.相似度矩阵算法</p>
+<p>###基于内容的推荐与协同过滤融合</p>
+<p>参考文献：</p>
+<p>《基于内容的推荐于协同过滤融合的新闻推荐方法》</p>
+<p>《实时新闻推荐系统的设计与实现》</p>
+<h2 id="相关资料："><a href="#相关资料：" class="headerlink" title="相关资料："></a>相关资料：</h2><p>协同过滤-相似度算法：</p>
+<p><a href="https://zhuanlan.zhihu.com/p/33164335" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/33164335</a></p>
+<p>基于内容的推荐算法：</p>
+<p><a href="https://blog.csdn.net/nicajonh/article/details/79657317" target="_blank" rel="noopener">https://blog.csdn.net/nicajonh/article/details/79657317</a></p>
+<p><a href="https://blog.csdn.net/qq_32690999/article/details/77434381" target="_blank" rel="noopener">https://blog.csdn.net/qq_32690999/article/details/77434381</a></p>
+<p>新闻推荐算法概述：</p>
+<p>第 1 部分: 推荐引擎初探：<a href="https://www.ibm.com/developerworks/cn/web/1103_zhaoct_recommstudy1/" target="_blank" rel="noopener">https://www.ibm.com/developerworks/cn/web/1103_zhaoct_recommstudy1/</a></p>
+<p>第 2 部分: 深入推荐引擎相关算法 - 协同过滤：<a href="https://www.ibm.com/developerworks/cn/web/1103_zhaoct_recommstudy2/index.html?ca=drs-" target="_blank" rel="noopener">https://www.ibm.com/developerworks/cn/web/1103_zhaoct_recommstudy2/index.html?ca=drs-</a></p>
+<p>第 3 部分: 深入推荐引擎相关算法 - 聚类： <a href="https://www.ibm.com/developerworks/cn/web/1103_zhaoct_recommstudy3/index.html?ca=drs-" target="_blank" rel="noopener">https://www.ibm.com/developerworks/cn/web/1103_zhaoct_recommstudy3/index.html?ca=drs-</a></p>
+<p>热度算法和个性化推荐： </p>
+<p><a href="https://www.jianshu.com/p/f8b6ac988045" target="_blank" rel="noopener">https://www.jianshu.com/p/f8b6ac988045</a></p>
+<p>参考文献：</p>
+<p>《基于新闻时效性的协同过滤推荐算法》 - 提出一种时间老化模型，配合协同过滤</p>
+<p>《基于用户行为的个性化新闻推荐系统研究》 - 一套比较完整的新闻推荐算法</p>
+<p>《基于主题模型与用户兴趣的个性化新闻推荐算法研究》 - 对用户兴趣模型的改进</p>
+<p>《实时新闻推荐系统的设计与实现》 - 一套比较完整的新闻推荐算法</p>
+<p>《新闻推荐算法 3A问题及优化策略》</p>
+<p>《移动环境下上下文感知的协同过滤推荐模型研究》- 基于上下文(时间、地理、温度、天气)感知的协同过滤算法</p>
+<p>《基于内容的推荐与协同过滤融合的新闻推荐方法》- 融合两种算法提升其准确度</p>
+<p>《基于时间段的动态用户兴趣度矩阵的新闻推荐研究》</p>
+<p>《新闻推荐系统中用户冷启动问题的研究》- 当项目刚启动时，并没有很多用户，用决策树更好的构建用户的初始兴趣模型</p>
 
     </div>
 
@@ -414,25 +338,21 @@
 
 
       <footer class="post-footer">
-          <div class="post-tags">
-              <a href="/tags/Solr/" rel="tag"># Solr</a>
-              <a href="/tags/ElasticSearch/" rel="tag"># ElasticSearch</a>
-          </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-next post-nav-item">
-                <a href="/2019/11/14/%E7%AD%96%E7%95%A5%E4%B8%8E%E7%AE%80%E5%8D%95%E5%B7%A5%E5%8E%82/" rel="next" title="策略与简单工厂">
-                  <i class="fa fa-chevron-left"></i> 策略与简单工厂
+                <a href="/2019/12/31/LBS%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94/" rel="next" title="LBS方案调研">
+                  <i class="fa fa-chevron-left"></i> LBS方案调研
                 </a>
             </div>
 
             <span class="post-nav-divider"></span>
 
             <div class="post-nav-prev post-nav-item">
-                <a href="/2019/11/15/%E8%AE%BA%E8%81%8C%E4%B8%9A%E7%B4%A0%E5%85%BB/" rel="prev" title="论职业素养">
-                  论职业素养 <i class="fa fa-chevron-right"></i>
+                <a href="/2019/12/31/%E6%96%87%E6%9C%AC%E6%A3%80%E6%B5%8B%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94/" rel="prev" title="文本检测方案调研">
+                  文本检测方案调研 <i class="fa fa-chevron-right"></i>
                 </a>
             </div>
           </div>
@@ -472,6 +392,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方案"><span class="nav-number">2.</span> <span class="nav-text">方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关资料："><span class="nav-number">3.</span> <span class="nav-text">相关资料：</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
