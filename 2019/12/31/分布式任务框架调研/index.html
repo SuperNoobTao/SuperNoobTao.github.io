@@ -51,18 +51,21 @@
   };
 </script>
 
-  <meta name="description" content="种一棵树最好的时间是十年前 其次是现在">
+  <meta name="description" content="背景之前项目中一直用的quartz定时调度框架，随着需求慢慢增多，发现quartz越来越不给力，所以需要换一个定时调度的框架。 ##主流定时调度框架介绍  Quartz：Java事实上的定时任务标准。但Quartz关注点在于定时任务而非数据，并无一套根据数据处理而定制化的流程。虽然Quartz可以基于数据库实现作业的高可用，但缺少分布式并行调度的功能  TBSchedule：阿里早期开源的分布式任">
 <meta name="keywords" content="程序员">
-<meta property="og:type" content="website">
-<meta property="og:title" content="分类">
-<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;categories&#x2F;index.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式任务框架调研">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;12&#x2F;31&#x2F;%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E6%A1%86%E6%9E%B6%E8%B0%83%E7%A0%94&#x2F;index.html">
 <meta property="og:site_name" content="业精于勤荒于嬉">
-<meta property="og:description" content="种一棵树最好的时间是十年前 其次是现在">
+<meta property="og:description" content="背景之前项目中一直用的quartz定时调度框架，随着需求慢慢增多，发现quartz越来越不给力，所以需要换一个定时调度的框架。 ##主流定时调度框架介绍  Quartz：Java事实上的定时任务标准。但Quartz关注点在于定时任务而非数据，并无一套根据数据处理而定制化的流程。虽然Quartz可以基于数据库实现作业的高可用，但缺少分布式并行调度的功能  TBSchedule：阿里早期开源的分布式任">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-11-14T08:11:10.408Z">
+<meta property="og:image" content="file:&#x2F;&#x2F;&#x2F;C:&#x2F;Users&#x2F;38794&#x2F;AppData&#x2F;Local&#x2F;Temp&#x2F;msohtmlclip1&#x2F;01&#x2F;clip_image002.jpg">
+<meta property="og:image" content="file:&#x2F;&#x2F;&#x2F;C:&#x2F;Users&#x2F;38794&#x2F;AppData&#x2F;Local&#x2F;Temp&#x2F;msohtmlclip1&#x2F;01&#x2F;clip_image004.jpg">
+<meta property="og:updated_time" content="2019-12-31T14:01:47.778Z">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="file:&#x2F;&#x2F;&#x2F;C:&#x2F;Users&#x2F;38794&#x2F;AppData&#x2F;Local&#x2F;Temp&#x2F;msohtmlclip1&#x2F;01&#x2F;clip_image002.jpg">
 
-<link rel="canonical" href="http://yoursite.com/categories/">
+<link rel="canonical" href="http://yoursite.com/2019/12/31/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E6%A1%86%E6%9E%B6%E8%B0%83%E7%A0%94/">
 
 
 <script id="page-configurations">
@@ -70,14 +73,13 @@
   CONFIG.page = {
     sidebar: "",
     isHome: false,
-    isPost: false,
-    isPage: true,
+    isPost: true,
+    isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>分类 | 业精于勤荒于嬉
-  </title>
+  <title>分布式任务框架调研 | 业精于勤荒于嬉</title>
   
 
 
@@ -213,52 +215,135 @@
       <div class="main-inner">
         <div class="content-wrap">
           
-  
-  
 
           <div class="content">
             
 
   <div class="posts-expand">
-    
-    
-    
-    <div class="post-block" lang="zh-CN">
-      <header class="post-header">
-
-<h1 class="post-title" itemprop="name headline">分类
-</h1>
-
-<div class="post-meta">
+      
   
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/31/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BB%BB%E5%8A%A1%E6%A1%86%E6%9E%B6%E8%B0%83%E7%A0%94/">
 
-</div>
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.gif">
+      <meta itemprop="name" content="沈小布">
+      <meta itemprop="description" content="种一棵树最好的时间是十年前 其次是现在">
+    </span>
 
-</header>
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="业精于勤荒于嬉">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式任务框架调研
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2019-12-31 20:48:29 / 修改时间：22:01:47" itemprop="dateCreated datePublished" datetime="2019-12-31T20:48:29+08:00">2019-12-31</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>之前项目中一直用的quartz定时调度框架，随着需求慢慢增多，发现quartz越来越不给力，所以需要换一个定时调度的框架。</p>
+<p>##主流定时调度框架介绍</p>
+<ol>
+<li><p>Quartz：Java事实上的定时任务标准。但Quartz关注点在于定时任务而非数据，并无一套根据数据处理而定制化的流程。虽然Quartz可以基于数据库实现作业的高可用，但缺少分布式并行调度的功能</p>
+</li>
+<li><p>TBSchedule：阿里早期开源的分布式任务调度系统。代码略陈旧，使用timer而非线程池执行任务调度。众所周知，timer在处理异常状况时是有缺陷的。而且TBSchedule作业类型较为单一，只能是获取/处理数据一种模式。还有就是文档缺失比较严重</p>
+</li>
+<li><p>elastic-job：当当开发的弹性分布式任务调度系统，功能丰富强大，采用zookeeper实现分布式协调，实现任务高可用以及分片，并且可以支持云开发。缺点是需要部署zookeeper，且上手难度较大</p>
+</li>
+<li><p>Saturn：是唯品会自主研发的分布式的定时任务的调度平台，基于当当的elastic-job 版本1开发，并且可以很好的部署到docker容器上。缺点是技术文档较少</p>
+</li>
+<li><p>xxl-job: 是大众点评员工徐雪里于2015年发布的分布式任务调度平台，是一个轻量级分布式任务调度框架，其核心设计目标是开发迅速、学习简单、轻量级、易扩展。</p>
+</li>
+</ol>
+<p>经过初步筛选，<code>elastic-job</code>和<code>xxl-job</code>功能比较强劲，技术支持人员和文档都比较多，使用也比较广泛。</p>
+<h2 id="主流方案对比"><a href="#主流方案对比" class="headerlink" title="主流方案对比"></a>主流方案对比</h2><p>从比对表中可以看出，quartz对于分布式的支持不够好，elastic-job学习成本较高，而xxl-job功能比较全，上手难度也较低，文档也比较完善，因此选用xxl-job比较合适。</p>
+<p><img src="file:///C:/Users/38794/AppData/Local/Temp/msohtmlclip1/01/clip_image002.jpg" alt="img"></p>
+<h2 id="xxl-job架构设计"><a href="#xxl-job架构设计" class="headerlink" title="xxl-job架构设计"></a>xxl-job架构设计</h2><p>从架构图中也可以看出来，xxl-job比较适合调度中心分布式部署，执行器分散于各个不同应用中的设计思路。</p>
+<p><img src="file:///C:/Users/38794/AppData/Local/Temp/msohtmlclip1/01/clip_image004.jpg" alt="img"></p>
+<h2 id="xxl-job源码地址，及使用文档"><a href="#xxl-job源码地址，及使用文档" class="headerlink" title="xxl-job源码地址，及使用文档"></a>xxl-job源码地址，及使用文档</h2><p>源码地址：</p>
+<p><a href="http://www.xuxueli.com/xxl-job/#/?id=《分布式任务调度平台xxl-job》" target="_blank" rel="noopener">http://www.xuxueli.com/xxl-job/#/?id=%e3%80%8a%e5%88%86%e5%b8%83%e5%bc%8f%e4%bb%bb%e5%8a%a1%e8%b0%83%e5%ba%a6%e5%b9%b3%e5%8f%b0xxl-job%e3%80%8b</a></p>
+<p>使用文档：</p>
+<p><a href="http://www.xuxueli.com/xxl-job/#/?id=《分布式任务调度平台xxl-job》" target="_blank" rel="noopener">http://www.xuxueli.com/xxl-job/#/?id=%e3%80%8a%e5%88%86%e5%b8%83%e5%bc%8f%e4%bb%bb%e5%8a%a1%e8%b0%83%e5%ba%a6%e5%b9%b3%e5%8f%b0xxl-job%e3%80%8b</a></p>
+<p>##xxl-job集成思路</p>
+<p>根据xxl-job的架构设计，可以将其调度系统与执行系统分开，调度系统分布式部署，并且自带有对应的管理后台，而执行器可以分布于不同的业务系统中，从调度系统领取任务。</p>
+<p>任务的创建可以通过各业务系统请求调度中心创建，也可以通过管理后台配置。任务的执行可以通过分片策略来指定不同的执行器。</p>
+
+    </div>
+
+    
+    
+    
       
-      
-      <div class="post-body">
-          <div class="category-all-page">
-            <div class="category-all-title">
-              目前共计 4 个分类
+
+
+      <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2019/12/31/eureka%E6%9C%8D%E5%8A%A1%E4%BC%98%E9%9B%85%E4%B8%8A%E4%B8%8B%E7%BA%BF/" rel="next" title="eureka服务优雅上下线">
+                  <i class="fa fa-chevron-left"></i> eureka服务优雅上下线
+                </a>
             </div>
-            <div class="category-all">
-              <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/eureka/">eureka</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E/">搜索引擎</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%97%AE%E9%A2%98/">问题</a><span class="category-list-count">1</span></li></ul>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2019/12/31/%E6%96%87%E6%9C%AC%E6%A3%80%E6%B5%8B%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94/" rel="prev" title="文本检测方案调研">
+                  文本检测方案调研 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
-        
-      </div>
-      
-      
-      
-    </div>
+      </footer>
     
+  </article>
+  
+  
+  
 
-    
-    
-    
   </div>
 
 
@@ -288,6 +373,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主流方案对比"><span class="nav-number">2.</span> <span class="nav-text">主流方案对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#xxl-job架构设计"><span class="nav-number">3.</span> <span class="nav-text">xxl-job架构设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#xxl-job源码地址，及使用文档"><span class="nav-number">4.</span> <span class="nav-text">xxl-job源码地址，及使用文档</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
