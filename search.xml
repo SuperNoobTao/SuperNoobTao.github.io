@@ -4,7 +4,7 @@
     <title>Eureka+Ribbon+Feign阶段性总结</title>
     <url>/2020/01/23/%5BEureka+Ribbon+Feign%E9%98%B6%E6%AE%B5%E6%80%A7%E6%80%BB%E7%BB%93%5D/</url>
     <content><![CDATA[<h1 id="Eureka-Ribbon-Feign阶段性总结"><a href="#Eureka-Ribbon-Feign阶段性总结" class="headerlink" title="[Eureka+Ribbon+Feign阶段性总结]"></a>[Eureka+Ribbon+Feign阶段性总结]</h1><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>三个组件的调用关系：</p>
-<p><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200113101813661-1058067907.png" alt="Feign_Ribbion_Eureka互相调用过程 1.jpg"></p>
+<p><img src="http://img2018.cnblogs.com/blog/799093/202001/799093-20200113101813661-1058067907.png" alt="Feign_Ribbion_Eureka互相调用过程 1.jpg"></p>
 <a id="more"></a>
 
 <p>图片看不清的话可以直接看分享出来的processon地址：</p>

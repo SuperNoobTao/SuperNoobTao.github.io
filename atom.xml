@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2020-03-01T15:29:29.211Z</updated>
+  <updated>2020-03-01T15:33:41.384Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -21,14 +21,14 @@
     <link href="http://yoursite.com/2020/01/23/[Eureka+Ribbon+Feign%E9%98%B6%E6%AE%B5%E6%80%A7%E6%80%BB%E7%BB%93]/"/>
     <id>http://yoursite.com/2020/01/23/[Eureka+Ribbon+Feign%E9%98%B6%E6%AE%B5%E6%80%A7%E6%80%BB%E7%BB%93]/</id>
     <published>2020-01-23T14:05:37.000Z</published>
-    <updated>2020-03-01T15:29:29.211Z</updated>
+    <updated>2020-03-01T15:33:41.384Z</updated>
     
-    <content type="html"><![CDATA[<h1 id="Eureka-Ribbon-Feign阶段性总结"><a href="#Eureka-Ribbon-Feign阶段性总结" class="headerlink" title="[Eureka+Ribbon+Feign阶段性总结]"></a>[Eureka+Ribbon+Feign阶段性总结]</h1><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>三个组件的调用关系：</p><p><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200113101813661-1058067907.png" alt="Feign_Ribbion_Eureka互相调用过程 1.jpg"></p><a id="more"></a><p>图片看不清的话可以直接看分享出来的processon地址：</p><p><a href="https://www.processon.com/view/link/5e1577a5e4b061a80c6ca89f" target="_blank" rel="noopener">https://www.processon.com/view/link/5e1577a5e4b061a80c6ca89f</a></p><p>转载自 ：<a href="https://www.cnblogs.com/wang-meng/p/12147889.html" target="_blank" rel="noopener">https://www.cnblogs.com/wang-meng/p/12147889.html</a></p>]]></content>
+    <content type="html"><![CDATA[<h1 id="Eureka-Ribbon-Feign阶段性总结"><a href="#Eureka-Ribbon-Feign阶段性总结" class="headerlink" title="[Eureka+Ribbon+Feign阶段性总结]"></a>[Eureka+Ribbon+Feign阶段性总结]</h1><h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>三个组件的调用关系：</p><p><img src="http://img2018.cnblogs.com/blog/799093/202001/799093-20200113101813661-1058067907.png" alt="Feign_Ribbion_Eureka互相调用过程 1.jpg"></p><a id="more"></a><p>图片看不清的话可以直接看分享出来的processon地址：</p><p><a href="https://www.processon.com/view/link/5e1577a5e4b061a80c6ca89f" target="_blank" rel="noopener">https://www.processon.com/view/link/5e1577a5e4b061a80c6ca89f</a></p><p>转载自 ：<a href="https://www.cnblogs.com/wang-meng/p/12147889.html" target="_blank" rel="noopener">https://www.cnblogs.com/wang-meng/p/12147889.html</a></p>]]></content>
     
     <summary type="html">
     
       &lt;h1 id=&quot;Eureka-Ribbon-Feign阶段性总结&quot;&gt;&lt;a href=&quot;#Eureka-Ribbon-Feign阶段性总结&quot; class=&quot;headerlink&quot; title=&quot;[Eureka+Ribbon+Feign阶段性总结]&quot;&gt;&lt;/a&gt;[Eureka+Ribbon+Feign阶段性总结]&lt;/h1&gt;&lt;h3 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h3&gt;&lt;p&gt;三个组件的调用关系：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;https://img2018.cnblogs.com/blog/799093/202001/799093-20200113101813661-1058067907.png&quot; alt=&quot;Feign_Ribbion_Eureka互相调用过程 1.jpg&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://img2018.cnblogs.com/blog/799093/202001/799093-20200113101813661-1058067907.png&quot; alt=&quot;Feign_Ribbion_Eureka互相调用过程 1.jpg&quot;&gt;&lt;/p&gt;
     
     </summary>
     
