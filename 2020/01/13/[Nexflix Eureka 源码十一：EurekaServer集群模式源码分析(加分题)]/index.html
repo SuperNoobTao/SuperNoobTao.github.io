@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="业精于勤荒于嬉" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="[Nexflix Eureka 源码十一：EurekaServer集群模式源码分析(加分题)]前言前情回顾上一讲看了Eureka 注册中心的自我保护机制，以及里面提到的bug问题。这一讲主要是集群相关的源码">
+<meta name="keywords" content="Nexflix Eureka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nexflix Eureka 源码十一：EurekaServer集群模式">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;01&#x2F;13&#x2F;[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%8D%81%E4%B8%80%EF%BC%9AEurekaServer%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%8A%A0%E5%88%86%E9%A2%98)]&#x2F;index.html">
+<meta property="og:site_name" content="业精于勤荒于嬉">
+<meta property="og:description" content="[Nexflix Eureka 源码十一：EurekaServer集群模式源码分析(加分题)]前言前情回顾上一讲看了Eureka 注册中心的自我保护机制，以及里面提到的bug问题。这一讲主要是集群相关的源码">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200103062115508-1016632232.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200103062116891-1070419267.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200103062117279-1230211095.png">
+<meta property="og:updated_time" content="2020-03-01T15:13:47.215Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200103062115508-1016632232.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/13/[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%8D%81%E4%B8%80%EF%BC%9AEurekaServer%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%8A%A0%E5%88%86%E9%A2%98)]/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Nexflix Eureka 源码十一：EurekaServer集群模式 | 业精于勤荒于嬉</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">业精于勤荒于嬉</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">行成于思毁于随</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-fw fa-heartbeat"></i>公益 404</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/13/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%8D%81%E4%B8%80%EF%BC%9AEurekaServer%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90(%E5%8A%A0%E5%88%86%E9%A2%98)%5D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.gif">
+      <meta itemprop="name" content="沈小布">
+      <meta itemprop="description" content="种一棵树最好的时间是十年前 其次是现在">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="业精于勤荒于嬉">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nexflix Eureka 源码十一：EurekaServer集群模式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-13 22:05:37" itemprop="dateCreated datePublished" datetime="2020-01-13T22:05:37+08:00">2020-01-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-01 23:13:47" itemprop="dateModified" datetime="2020-03-01T23:13:47+08:00">2020-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%BA%90%E7%A0%81/" itemprop="url" rel="index">
+                    <span itemprop="name">源码</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Nexflix-Eureka-源码十一：EurekaServer集群模式源码分析-加分题"><a href="#Nexflix-Eureka-源码十一：EurekaServer集群模式源码分析-加分题" class="headerlink" title="[Nexflix Eureka 源码十一：EurekaServer集群模式源码分析(加分题)]"></a>[Nexflix Eureka 源码十一：EurekaServer集群模式源码分析(加分题)]</h1><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><h4 id="前情回顾"><a href="#前情回顾" class="headerlink" title="前情回顾"></a>前情回顾</h4><p>上一讲看了Eureka 注册中心的自我保护机制，以及里面提到的bug问题。这一讲主要是集群相关的源码</p>
+<a id="more"></a>
+
+<h4 id="本讲目录"><a href="#本讲目录" class="headerlink" title="本讲目录"></a>本讲目录</h4><p>本讲主要是EurekaServer集群模式的数据同步讲解，主要目录如下。</p>
+<p><strong>目录如下：</strong></p>
+<ol>
+<li>eureka server集群机制</li>
+<li>注册、下线、续约的注册表同步机制</li>
+<li>注册表同步三层队列机制详解</li>
+</ol>
+<p><strong>技术亮点：</strong></p>
+<ol>
+<li>3层队列机制实现注册表的批量同步需求</li>
+</ol>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><h4 id="eureka-server集群机制"><a href="#eureka-server集群机制" class="headerlink" title="eureka server集群机制"></a>eureka server集群机制</h4><p><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200103062115508-1016632232.png" alt="image.png"></p>
+<p>Eureka Server会在注册、下线、续约的时候进行数据同步，将信息同步到其他Eureka Server节点。</p>
+<p>可以想象到的是，这里肯定不会是实时同步的，往后继续看注册表的同步机制吧。</p>
+<h4 id="注册、下线、续约的注册表同步机制"><a href="#注册、下线、续约的注册表同步机制" class="headerlink" title="注册、下线、续约的注册表同步机制"></a>注册、下线、续约的注册表同步机制</h4><p>我们以Eureka Client注册为例，看看Eureka Server是如何同步给其他节点的。</p>
+<p><code>PeerAwareInstanceRegistryImpl.java</code> :</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register</span><span class="params">(<span class="keyword">final</span> InstanceInfo info, <span class="keyword">final</span> <span class="keyword">boolean</span> isReplication)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> leaseDuration = Lease.DEFAULT_DURATION_IN_SECS;</span><br><span class="line">    <span class="keyword">if</span> (info.getLeaseInfo() != <span class="keyword">null</span> &amp;&amp; info.getLeaseInfo().getDurationInSecs() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        leaseDuration = info.getLeaseInfo().getDurationInSecs();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">super</span>.register(info, leaseDuration, isReplication);</span><br><span class="line">    replicateToPeers(Action.Register, info.getAppName(), info.getId(), info, <span class="keyword">null</span>, isReplication);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">replicateToPeers</span><span class="params">(Action action, String appName, String id,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  InstanceInfo info <span class="comment">/* optional */</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  InstanceStatus newStatus <span class="comment">/* optional */</span>, <span class="keyword">boolean</span> isReplication)</span> </span>&#123;</span><br><span class="line">    Stopwatch tracer = action.getTimer().start();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (isReplication) &#123;</span><br><span class="line">            numberOfReplicationsLastMin.increment();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// If it is a replication already, do not replicate again as this will create a poison replication</span></span><br><span class="line">        <span class="keyword">if</span> (peerEurekaNodes == Collections.EMPTY_LIST || isReplication) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">final</span> PeerEurekaNode node : peerEurekaNodes.getPeerEurekaNodes()) &#123;</span><br><span class="line">            <span class="comment">// If the url represents this host, do not replicate to yourself.</span></span><br><span class="line">            <span class="keyword">if</span> (peerEurekaNodes.isThisMyUrl(node.getServiceUrl())) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            replicateInstanceActionsToPeers(action, appName, id, info, newStatus, node);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        tracer.stop();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">replicateInstanceActionsToPeers</span><span class="params">(Action action, String appName,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                 String id, InstanceInfo info, InstanceStatus newStatus,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                 PeerEurekaNode node)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        InstanceInfo infoFromRegistry = <span class="keyword">null</span>;</span><br><span class="line">        CurrentRequestVersion.set(Version.V2);</span><br><span class="line">        <span class="keyword">switch</span> (action) &#123;</span><br><span class="line">            <span class="keyword">case</span> Cancel:</span><br><span class="line">                node.cancel(appName, id);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> Heartbeat:</span><br><span class="line">                InstanceStatus overriddenStatus = overriddenInstanceStatusMap.get(id);</span><br><span class="line">                infoFromRegistry = getInstanceByAppAndId(appName, id, <span class="keyword">false</span>);</span><br><span class="line">                node.heartbeat(appName, id, infoFromRegistry, overriddenStatus, <span class="keyword">false</span>);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> Register:</span><br><span class="line">                node.register(info);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> StatusUpdate:</span><br><span class="line">                infoFromRegistry = getInstanceByAppAndId(appName, id, <span class="keyword">false</span>);</span><br><span class="line">                node.statusUpdate(appName, id, newStatus, infoFromRegistry);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> DeleteStatusOverride:</span><br><span class="line">                infoFromRegistry = getInstanceByAppAndId(appName, id, <span class="keyword">false</span>);</span><br><span class="line">                node.deleteStatusOverride(appName, id, infoFromRegistry);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        logger.error(<span class="string">"Cannot replicate information to &#123;&#125; for action &#123;&#125;"</span>, node.getServiceUrl(), action.name(), t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>注册完成后，调用<code>replicateToPeers()</code>，注意这里面有一个参数<code>isReplication</code>，如果是true，代表是其他Eureka Server节点同步的，false则是EurekaClient注册来的。</li>
+<li><code>replicateToPeers()</code>中一段逻辑，如果<code>isReplication</code>为true则直接跳出，这里意思是client注册来的服务实例需要向其他节点扩散，如果不是则不需要去同步</li>
+<li><code>peerEurekaNodes.getPeerEurekaNodes()</code>拿到所有的Eureka Server节点，循环遍历去同步数据，调用<code>replicateInstanceActionsToPeers()</code></li>
+<li><code>replicateInstanceActionsToPeers()</code>方法中根据注册、下线、续约等去处理不同逻辑</li>
+</ol>
+<p>接下来就是真正执行同步逻辑的地方，这里主要用了三层队列对同步请求进行了batch操作，将请求打成一批批 然后向各个EurekaServer进行http请求。</p>
+<h4 id="注册表同步三层队列机制详解"><a href="#注册表同步三层队列机制详解" class="headerlink" title="注册表同步三层队列机制详解"></a>注册表同步三层队列机制详解</h4><p>到了这里就是真正进入了同步的逻辑，这里还是以上面注册逻辑为主线，接着上述代码继续往下跟：</p>
+<p><code>PeerEurekaNode.java</code> :</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register</span><span class="params">(<span class="keyword">final</span> InstanceInfo info)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> expiryTime = System.currentTimeMillis() + getLeaseRenewalOf(info);</span><br><span class="line">    batchingDispatcher.process(</span><br><span class="line">            taskId(<span class="string">"register"</span>, info),</span><br><span class="line">            <span class="keyword">new</span> InstanceReplicationTask(targetHost, Action.Register, info, <span class="keyword">null</span>, <span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="function"><span class="keyword">public</span> EurekaHttpResponse&lt;Void&gt; <span class="title">execute</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                    <span class="keyword">return</span> replicationClient.register(info);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            expiryTime</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里会执行<code>batchingDispatcher.process()</code> 方法，我们继续点进去，然后会进入 <code>TaskDispatchers.createBatchingTaskDispatcher()</code> 方法，查看其中的匿名内部类中的<code>process()</code>方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">process</span><span class="params">(ID id, T task, <span class="keyword">long</span> expiryTime)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 将请求都放入到acceptorQueue中</span></span><br><span class="line">        acceptorQueue.add(<span class="keyword">new</span> TaskHolder&lt;ID, T&gt;(id, task, expiryTime));</span><br><span class="line">        acceptedTasks++;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>将需要同步的Task数据放入到<code>acceptorQueue</code>队列中。<br> 接着回到<code>createBatchingTaskDispatcher()</code>方法中，看下<code>AcceptorExecutor</code>，它的构造函数中会启动一个后台线程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ThreadGroup threadGroup = <span class="keyword">new</span> ThreadGroup(<span class="string">"eurekaTaskExecutors"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">this</span>.acceptorThread = <span class="keyword">new</span> Thread(threadGroup, <span class="keyword">new</span> AcceptorRunner(), <span class="string">"TaskAcceptor-"</span> + id);</span><br></pre></td></tr></table></figure>
+
+<p>我们继续跟<code>AcceptorRunner.java</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AcceptorRunner</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> scheduleTime = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (!isShutdown.get()) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// 处理acceptorQueue队列中的数据</span></span><br><span class="line">                drainInputQueues();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">int</span> totalItems = processingOrder.size();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">long</span> now = System.currentTimeMillis();</span><br><span class="line">                <span class="keyword">if</span> (scheduleTime &lt; now) &#123;</span><br><span class="line">                    scheduleTime = now + trafficShaper.transmissionDelay();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (scheduleTime &lt;= now) &#123;</span><br><span class="line">                    <span class="comment">// 将processingOrder拆分成一个个batch，然后进行操作</span></span><br><span class="line">                    assignBatchWork();</span><br><span class="line">                    assignSingleItemWork();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// If no worker is requesting data or there is a delay injected by the traffic shaper,</span></span><br><span class="line">                <span class="comment">// sleep for some time to avoid tight loop.</span></span><br><span class="line">                <span class="keyword">if</span> (totalItems == processingOrder.size()) &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">10</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException ex) &#123;</span><br><span class="line">                <span class="comment">// Ignore</span></span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">                <span class="comment">// Safe-guard, so we never exit this loop in an uncontrolled way.</span></span><br><span class="line">                logger.warn(<span class="string">"Discovery AcceptorThread error"</span>, e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">drainInputQueues</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            drainAcceptorQueue();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!isShutdown.get()) &#123;</span><br><span class="line">                <span class="comment">// If all queues are empty, block for a while on the acceptor queue</span></span><br><span class="line">                <span class="keyword">if</span> (reprocessQueue.isEmpty() &amp;&amp; acceptorQueue.isEmpty() &amp;&amp; pendingTasks.isEmpty()) &#123;</span><br><span class="line">                    TaskHolder&lt;ID, T&gt; taskHolder = acceptorQueue.poll(<span class="number">10</span>, TimeUnit.MILLISECONDS);</span><br><span class="line">                    <span class="keyword">if</span> (taskHolder != <span class="keyword">null</span>) &#123;</span><br><span class="line">                        appendTaskHolder(taskHolder);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">while</span> (!reprocessQueue.isEmpty() || !acceptorQueue.isEmpty() || pendingTasks.isEmpty());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">drainAcceptorQueue</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (!acceptorQueue.isEmpty()) &#123;</span><br><span class="line">            <span class="comment">// 将acceptor队列中的数据放入到processingOrder队列中去，方便后续拆分成batch</span></span><br><span class="line">            appendTaskHolder(acceptorQueue.poll());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">appendTaskHolder</span><span class="params">(TaskHolder&lt;ID, T&gt; taskHolder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (isFull()) &#123;</span><br><span class="line">            pendingTasks.remove(processingOrder.poll());</span><br><span class="line">            queueOverflows++;</span><br><span class="line">        &#125;</span><br><span class="line">        TaskHolder&lt;ID, T&gt; previousTask = pendingTasks.put(taskHolder.getId(), taskHolder);</span><br><span class="line">        <span class="keyword">if</span> (previousTask == <span class="keyword">null</span>) &#123;</span><br><span class="line">            processingOrder.add(taskHolder.getId());</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            overriddenTasks++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">            </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>认真跟这里面的代码，可以看到这里是将上面的<code>acceptorQueue</code>放入到<code>processingOrder</code>, 其中<code>processingOrder</code>也是一个队列。</p>
+<p>在<code>AcceptorRunner.java</code>的<code>run()</code>方法中，还会调用<code>assignBatchWork()</code>方法，这里面就是将<code>processingOrder</code>打成一个个batch，接着看代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">assignBatchWork</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (hasEnoughTasksForNextBatch()) &#123;</span><br><span class="line">                <span class="keyword">if</span> (batchWorkRequests.tryAcquire(<span class="number">1</span>)) &#123;</span><br><span class="line">                    <span class="keyword">long</span> now = System.currentTimeMillis();</span><br><span class="line">                    <span class="keyword">int</span> len = Math.min(maxBatchingSize, processingOrder.size());</span><br><span class="line">                    List&lt;TaskHolder&lt;ID, T&gt;&gt; holders = <span class="keyword">new</span> ArrayList&lt;&gt;(len);</span><br><span class="line">                    <span class="keyword">while</span> (holders.size() &lt; len &amp;&amp; !processingOrder.isEmpty()) &#123;</span><br><span class="line">                        ID id = processingOrder.poll();</span><br><span class="line">                        TaskHolder&lt;ID, T&gt; holder = pendingTasks.remove(id);</span><br><span class="line">                        <span class="keyword">if</span> (holder.getExpiryTime() &gt; now) &#123;</span><br><span class="line">                            holders.add(holder);</span><br><span class="line">                        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                            expiredTasks++;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (holders.isEmpty()) &#123;</span><br><span class="line">                        batchWorkRequests.release();</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        batchSizeMetric.record(holders.size(), TimeUnit.MILLISECONDS);</span><br><span class="line">                        <span class="comment">// 将批量数据放入到batchWorkQueue中</span></span><br><span class="line">                        batchWorkQueue.add(holders);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">hasEnoughTasksForNextBatch</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (processingOrder.isEmpty()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 默认maxBufferSize为250</span></span><br><span class="line">            <span class="keyword">if</span> (pendingTasks.size() &gt;= maxBufferSize) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            TaskHolder&lt;ID, T&gt; nextHolder = pendingTasks.get(processingOrder.peek());</span><br><span class="line">            <span class="comment">// 默认maxBatchingDelay为500ms</span></span><br><span class="line">            <span class="keyword">long</span> delay = System.currentTimeMillis() - nextHolder.getSubmitTimestamp();</span><br><span class="line">            <span class="keyword">return</span> delay &gt;= maxBatchingDelay;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里加入batch的规则是：<code>maxBufferSize</code> 默认为250<br> <code>maxBatchingDelay</code> 默认为500ms，打成一个个batch后就开始发送给server端。至于怎么发送 我们接着看 <code>PeerEurekaNode.java</code>， 我们在最开始调用<code>register()</code>方法就是调用<code>PeerEurekaNode.register()</code>, 我们来看看它的构造方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">PeerEurekaNode(PeerAwareInstanceRegistry registry, String targetHost, String serviceUrl,</span><br><span class="line">                                     HttpReplicationClient replicationClient, EurekaServerConfig config,</span><br><span class="line">                                     <span class="keyword">int</span> batchSize, <span class="keyword">long</span> maxBatchingDelayMs,</span><br><span class="line">                                     <span class="keyword">long</span> retrySleepTimeMs, <span class="keyword">long</span> serverUnavailableSleepTimeMs) &#123;</span><br><span class="line">    <span class="keyword">this</span>.registry = registry;</span><br><span class="line">    <span class="keyword">this</span>.targetHost = targetHost;</span><br><span class="line">    <span class="keyword">this</span>.replicationClient = replicationClient;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.serviceUrl = serviceUrl;</span><br><span class="line">    <span class="keyword">this</span>.config = config;</span><br><span class="line">    <span class="keyword">this</span>.maxProcessingDelayMs = config.getMaxTimeForReplication();</span><br><span class="line"></span><br><span class="line">    String batcherName = getBatcherName();</span><br><span class="line">    ReplicationTaskProcessor taskProcessor = <span class="keyword">new</span> ReplicationTaskProcessor(targetHost, replicationClient);</span><br><span class="line">    <span class="keyword">this</span>.batchingDispatcher = TaskDispatchers.createBatchingTaskDispatcher(</span><br><span class="line">            batcherName,</span><br><span class="line">            config.getMaxElementsInPeerReplicationPool(),</span><br><span class="line">            batchSize,</span><br><span class="line">            config.getMaxThreadsForPeerReplication(),</span><br><span class="line">            maxBatchingDelayMs,</span><br><span class="line">            serverUnavailableSleepTimeMs,</span><br><span class="line">            retrySleepTimeMs,</span><br><span class="line">            taskProcessor</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里会实例化一个<code>ReplicationTaskProcessor.java</code>， 我们跟进去，发下它是实现<code>TaskProcessor</code>的，所以一定会执行此类中的<code>process()</code>方法，执行方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ProcessingResult <span class="title">process</span><span class="params">(List&lt;ReplicationTask&gt; tasks)</span> </span>&#123;</span><br><span class="line">    ReplicationList list = createReplicationListOf(tasks);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        EurekaHttpResponse&lt;ReplicationListResponse&gt; response = replicationClient.submitBatchUpdates(list);</span><br><span class="line">        <span class="keyword">int</span> statusCode = response.getStatusCode();</span><br><span class="line">        <span class="keyword">if</span> (!isSuccess(statusCode)) &#123;</span><br><span class="line">            <span class="keyword">if</span> (statusCode == <span class="number">503</span>) &#123;</span><br><span class="line">                logger.warn(<span class="string">"Server busy (503) HTTP status code received from the peer &#123;&#125;; rescheduling tasks after delay"</span>, peerId);</span><br><span class="line">                <span class="keyword">return</span> ProcessingResult.Congestion;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// Unexpected error returned from the server. This should ideally never happen.</span></span><br><span class="line">                logger.error(<span class="string">"Batch update failure with HTTP status code &#123;&#125;; discarding &#123;&#125; replication tasks"</span>, statusCode, tasks.size());</span><br><span class="line">                <span class="keyword">return</span> ProcessingResult.PermanentError;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            handleBatchResponse(tasks, response.getEntity().getResponseList());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        <span class="keyword">if</span> (isNetworkConnectException(e)) &#123;</span><br><span class="line">            logNetworkErrorSample(<span class="keyword">null</span>, e);</span><br><span class="line">            <span class="keyword">return</span> ProcessingResult.TransientError;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            logger.error(<span class="string">"Not re-trying this exception because it does not seem to be a network exception"</span>, e);</span><br><span class="line">            <span class="keyword">return</span> ProcessingResult.PermanentError;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ProcessingResult.Success;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里面是将<code>List tasks</code> 通过<code>submitBatchUpdate()</code> 发送给server端。<br> server端在<code>PeerReplicationResource.batchReplication()</code>去处理，实际上就是循环调用<code>ApplicationResource.addInstance()</code> 方法，又回到了最开始注册的方法。</p>
+<p>到此 EurekaServer同步的逻辑就结束了，这里主要是三层队列的数据结构很绕，通过一个batchList去批量同步数据的。</p>
+<p>注意这里还有一个很重要的点，就是Client注册时调用addInstance()方法，这里到了server端<code>PeerAwareInstanceRegistryImpl</code>会执行同步其他EurekaServer逻辑。</p>
+<p>而EurekaServer同步注册接口仍然会调用addInstance()方法，这里难不成就死循环调用了？当然不是，addInstance()中也有个参数：<code>isReplication</code>， 在最后调用server端方法的时候如下：<code>registry.register(info, &quot;true&quot;.equals(isReplication));</code></p>
+<p>我们知道，EurekaClient在注册的时候<code>isReplication</code>传递为空，所以这里为false，而Server端同步的时候调用：</p>
+<p><code>PeerReplicationResource</code>:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">private static Builder handleRegister(ReplicationInstance instanceInfo, ApplicationResource applicationResource) &#123;</span><br><span class="line">        applicationResource.addInstance(instanceInfo.getInstanceInfo(), REPLICATION);</span><br><span class="line">        return new Builder().setStatusCode(Status.OK.getStatusCode());</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的<code>REPLICATION</code> 为true</p>
+<p>另外在<code>AbstractJersey2EurekaHttpClient</code>中发送register请求的时候，有个<code>addExtraHeaders()</code>方法，如下图：</p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200103062116891-1070419267.png" alt="image.png"></p>
+<p>如果是使用的<code>Jersey2ReplicationClient</code>发送的，那么header中的<code>x-netflix-discovery-replication</code>配置则为true，在后面执行注册的<code>addInstance()</code>方法中会接收这个参数的：</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>仍然一图流，文中解析的内容都包含在这张图中了：</p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200103062117279-1230211095.png" alt="11_Eureka注册中心集群同步原理.png"></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2019\12\31\[Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取]\" rel="bookmark">Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\09\[Nexflix Eureka 源码七：EurekaClient注册表抓取 精妙设计分析！]\" rel="bookmark">Nexflix Eureka 源码七：EurekaClient注册表抓取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\03\[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]\" rel="bookmark">Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\10\[Nexflix Eureka 源码九：服务下线及实例摘除，一个client下线到底多久才会被其他实例感知？]\" rel="bookmark">Nexflix Eureka 源码九：服务下线及实例摘除</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\02\[Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建]\" rel="bookmark">Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nexflix-Eureka/" rel="tag"># Nexflix Eureka</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2020/01/11/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%8D%81%EF%BC%9AEurekaServer%E8%87%AA%E6%88%91%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6%E7%AB%9F%E7%84%B6%E6%9C%89%E8%BF%99%E4%B9%88%E5%A4%9ABug%EF%BC%9F%5D/" rel="next" title="Nexflix Eureka 源码十：EurekaServer自我保护机制">
+                  <i class="fa fa-chevron-left"></i> Nexflix Eureka 源码十：EurekaServer自我保护机制
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2020/01/14/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%8D%81%E4%BA%8C%EF%BC%9AEureka%E6%80%BB%E7%BB%93%E3%80%81%E6%9E%B6%E6%9E%84%E5%9B%BE%E4%BB%A5%E5%8F%8A%E6%80%9D%E7%BB%B4%E5%AF%BC%E5%9B%BE%5D/" rel="prev" title="Nexflix Eureka 源码十二：Eureka总结、架构图以及思维导图">
+                  Nexflix Eureka 源码十二：Eureka总结、架构图以及思维导图 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Nexflix-Eureka-源码十一：EurekaServer集群模式源码分析-加分题"><span class="nav-number">1.</span> <span class="nav-text">[Nexflix Eureka 源码十一：EurekaServer集群模式源码分析(加分题)]</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.0.1.</span> <span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#前情回顾"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">前情回顾</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#本讲目录"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">本讲目录</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#源码分析"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#eureka-server集群机制"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">eureka server集群机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#注册、下线、续约的注册表同步机制"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">注册、下线、续约的注册表同步机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#注册表同步三层队列机制详解"><span class="nav-number">1.0.2.3.</span> <span class="nav-text">注册表同步三层队列机制详解</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.0.3.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="沈小布"
+      src="/images/head.gif">
+  <p class="site-author-name" itemprop="name">沈小布</p>
+  <div class="site-description" itemprop="description">种一棵树最好的时间是十年前 其次是现在</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/yourname" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:yourname@gmail.com" title="E-Mail → mailto:yourname@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/yourname" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/yourname" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-google"></i>Google</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">沈小布</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">201k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:03</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+
+  <script>
+      var now = new Date(); 
+      function createtime() { 
+          var grt= new Date("03/12/2019 12:00:00");//此处修改你的建站时间或者网站上线时间 
+          now.setTime(now.getTime()+250); 
+          days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+          hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+          if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+          mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+          seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+          snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+          document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 "; 
+          document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+      } 
+  setInterval("createtime()",250);
+  </script>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

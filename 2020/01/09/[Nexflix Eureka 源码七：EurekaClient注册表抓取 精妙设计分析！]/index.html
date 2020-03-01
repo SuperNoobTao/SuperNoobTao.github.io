@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="业精于勤荒于嬉" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="[Nexflix Eureka 源码七：EurekaClient注册表抓取]前言前情回顾上一讲 我们通过单元测试 来梳理了EurekaClient是如何注册到server端，以及server端接收到请求是如何处理的，这里最重要的关注点是注册表的一个数据结构：ConcurrentHashMap&amp;gt;&amp;gt;()">
+<meta name="keywords" content="Nexflix Eureka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nexflix Eureka 源码七：EurekaClient注册表抓取">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;01&#x2F;09&#x2F;[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B8%83%EF%BC%9AEurekaClient%E6%B3%A8%E5%86%8C%E8%A1%A8%E6%8A%93%E5%8F%96%20%E7%B2%BE%E5%A6%99%E8%AE%BE%E8%AE%A1%E5%88%86%E6%9E%90%EF%BC%81]&#x2F;index.html">
+<meta property="og:site_name" content="业精于勤荒于嬉">
+<meta property="og:description" content="[Nexflix Eureka 源码七：EurekaClient注册表抓取]前言前情回顾上一讲 我们通过单元测试 来梳理了EurekaClient是如何注册到server端，以及server端接收到请求是如何处理的，这里最重要的关注点是注册表的一个数据结构：ConcurrentHashMap&amp;gt;&amp;gt;()">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191230100153319-2129447041.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191230100155385-1911116225.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191230100156361-820219091.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191230100157542-1986591842.png">
+<meta property="og:updated_time" content="2020-03-01T15:12:02.202Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191230100153319-2129447041.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/09/[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B8%83%EF%BC%9AEurekaClient%E6%B3%A8%E5%86%8C%E8%A1%A8%E6%8A%93%E5%8F%96%20%E7%B2%BE%E5%A6%99%E8%AE%BE%E8%AE%A1%E5%88%86%E6%9E%90%EF%BC%81]/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Nexflix Eureka 源码七：EurekaClient注册表抓取 | 业精于勤荒于嬉</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">业精于勤荒于嬉</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">行成于思毁于随</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-fw fa-heartbeat"></i>公益 404</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/09/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B8%83%EF%BC%9AEurekaClient%E6%B3%A8%E5%86%8C%E8%A1%A8%E6%8A%93%E5%8F%96%20%E7%B2%BE%E5%A6%99%E8%AE%BE%E8%AE%A1%E5%88%86%E6%9E%90%EF%BC%81%5D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.gif">
+      <meta itemprop="name" content="沈小布">
+      <meta itemprop="description" content="种一棵树最好的时间是十年前 其次是现在">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="业精于勤荒于嬉">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nexflix Eureka 源码七：EurekaClient注册表抓取
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-09 22:05:37" itemprop="dateCreated datePublished" datetime="2020-01-09T22:05:37+08:00">2020-01-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-01 23:12:02" itemprop="dateModified" datetime="2020-03-01T23:12:02+08:00">2020-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%BA%90%E7%A0%81/" itemprop="url" rel="index">
+                    <span itemprop="name">源码</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>19k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>18 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Nexflix-Eureka-源码七：EurekaClient注册表抓取"><a href="#Nexflix-Eureka-源码七：EurekaClient注册表抓取" class="headerlink" title="[Nexflix Eureka 源码七：EurekaClient注册表抓取]"></a>[Nexflix Eureka 源码七：EurekaClient注册表抓取]</h1><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><h4 id="前情回顾"><a href="#前情回顾" class="headerlink" title="前情回顾"></a>前情回顾</h4><p>上一讲 我们通过单元测试 来梳理了EurekaClient是如何注册到server端，以及server端接收到请求是如何处理的，这里最重要的关注点是注册表的一个数据结构：<code>ConcurrentHashMap&gt;&gt;()</code></p>
+<a id="more"></a>
+
+<h4 id="本讲目录"><a href="#本讲目录" class="headerlink" title="本讲目录"></a>本讲目录</h4><ol>
+<li>client端第一次注册全量抓取注册表的逻辑</li>
+<li>server端返回注册表信息集合的多级缓存机制</li>
+<li>server端注册表多级缓存过期机制：主动+定时+被动</li>
+<li>client端增量抓取注册表逻辑</li>
+</ol>
+<p><strong>技术亮点：</strong></p>
+<ol>
+<li>注册表抓取的多级缓存机制</li>
+<li>增量抓取返回的全量数据hashCode，和本地数据hashCode对比，保证数据一致性</li>
+</ol>
+<p>这里再啰嗦一点，之前一直吐槽EurekaClient注册的逻辑，今天看了EurekaClient注册表抓取的逻辑后，不由的感叹设计的精妙之处，这里说的精妙是指EurekaServer端对于注册表读取逻辑的设计，缓存逻辑以及增量获取时Hash一致性的判断，真的很妙，感觉又学到了不少东西。</p>
+<h3 id="EurekaClient全量抓取注册表逻辑"><a href="#EurekaClient全量抓取注册表逻辑" class="headerlink" title="EurekaClient全量抓取注册表逻辑"></a>EurekaClient全量抓取注册表逻辑</h3><p>一直在想着怎么才能把自己看完代码后的理解用文字表达出来，这里采用一种新模式吧，先画图，然后源码，然后解读。</p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/201912/799093-20191230100153319-2129447041.png" alt="04_EurekaClient注册表全量抓取逻辑.png"></p>
+<p>图片看起来很简单，Client发送Http请求给Server端，Server端返回全量的注册表信息给Client端。接下来就是跟进代码一步步分析，这里先有个大概印象</p>
+<h4 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h4><ol>
+<li>Client端发送获取全量注册表请求</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Inject</span></span><br><span class="line">DiscoveryClient(ApplicationInfoManager applicationInfoManager, EurekaClientConfig config, AbstractDiscoveryClientOptionalArgs args,</span><br><span class="line">                Provider&lt;BackupRegistry&gt; backupRegistryProvider, EndpointRandomizer endpointRandomizer) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略很多无关代码</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (clientConfig.shouldFetchRegistry() &amp;&amp; !fetchRegistry(<span class="keyword">false</span>)) &#123;</span><br><span class="line">        fetchRegistryFromBackup();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">fetchRegistry</span><span class="params">(<span class="keyword">boolean</span> forceFullRegistryFetch)</span> </span>&#123;</span><br><span class="line">    Stopwatch tracer = FETCH_REGISTRY_TIMER.start();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// If the delta is disabled or if it is the first time, get all</span></span><br><span class="line">        <span class="comment">// applications</span></span><br><span class="line">        Applications applications = getApplications();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (clientConfig.shouldDisableDelta()</span><br><span class="line">                || (!Strings.isNullOrEmpty(clientConfig.getRegistryRefreshSingleVipAddress()))</span><br><span class="line">                || forceFullRegistryFetch</span><br><span class="line">                || (applications == <span class="keyword">null</span>)</span><br><span class="line">                || (applications.getRegisteredApplications().size() == <span class="number">0</span>)</span><br><span class="line">                || (applications.getVersion() == -<span class="number">1</span>)) <span class="comment">//Client application does not have latest library supporting delta</span></span><br><span class="line">        &#123;</span><br><span class="line">            logger.info(<span class="string">"Disable delta property : &#123;&#125;"</span>, clientConfig.shouldDisableDelta());</span><br><span class="line">            logger.info(<span class="string">"Single vip registry refresh property : &#123;&#125;"</span>, clientConfig.getRegistryRefreshSingleVipAddress());</span><br><span class="line">            logger.info(<span class="string">"Force full registry fetch : &#123;&#125;"</span>, forceFullRegistryFetch);</span><br><span class="line">            logger.info(<span class="string">"Application is null : &#123;&#125;"</span>, (applications == <span class="keyword">null</span>));</span><br><span class="line">            logger.info(<span class="string">"Registered Applications size is zero : &#123;&#125;"</span>,</span><br><span class="line">                    (applications.getRegisteredApplications().size() == <span class="number">0</span>));</span><br><span class="line">            logger.info(<span class="string">"Application version is -1: &#123;&#125;"</span>, (applications.getVersion() == -<span class="number">1</span>));</span><br><span class="line">            getAndStoreFullRegistry();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            getAndUpdateDelta(applications);</span><br><span class="line">        &#125;</span><br><span class="line">        applications.setAppsHashCode(applications.getReconcileHashCode());</span><br><span class="line">        logTotalInstances();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        logger.error(PREFIX + <span class="string">"&#123;&#125; - was unable to refresh its cache! status = &#123;&#125;"</span>, appPathIdentifier, e.getMessage(), e);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (tracer != <span class="keyword">null</span>) &#123;</span><br><span class="line">            tracer.stop();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 删减掉一些代码</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// registry was fetched successfully, so return true</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">getAndStoreFullRegistry</span><span class="params">()</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> currentUpdateGeneration = fetchRegistryGeneration.get();</span><br><span class="line"></span><br><span class="line">    logger.info(<span class="string">"Getting all instance registry info from the eureka server"</span>);</span><br><span class="line"></span><br><span class="line">    Applications apps = <span class="keyword">null</span>;</span><br><span class="line">    EurekaHttpResponse&lt;Applications&gt; httpResponse = clientConfig.getRegistryRefreshSingleVipAddress() == <span class="keyword">null</span></span><br><span class="line">            ? eurekaTransport.queryClient.getApplications(remoteRegionsRef.get())</span><br><span class="line">            : eurekaTransport.queryClient.getVip(clientConfig.getRegistryRefreshSingleVipAddress(), remoteRegionsRef.get());</span><br><span class="line">    <span class="keyword">if</span> (httpResponse.getStatusCode() == Status.OK.getStatusCode()) &#123;</span><br><span class="line">        apps = httpResponse.getEntity();</span><br><span class="line">    &#125;</span><br><span class="line">    logger.info(<span class="string">"The response status is &#123;&#125;"</span>, httpResponse.getStatusCode());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (apps == <span class="keyword">null</span>) &#123;</span><br><span class="line">        logger.error(<span class="string">"The application is null for some reason. Not storing this information"</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (fetchRegistryGeneration.compareAndSet(currentUpdateGeneration, currentUpdateGeneration + <span class="number">1</span>)) &#123;</span><br><span class="line">        localRegionApps.set(<span class="keyword">this</span>.filterAndShuffle(apps));</span><br><span class="line">        logger.debug(<span class="string">"Got full registry with apps hashcode &#123;&#125;"</span>, apps.getAppsHashCode());</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        logger.warn(<span class="string">"Not updating applications as another thread is updating it already"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里就不再赘述Client端是如何一步步跟进到发请求的代码的，因为之前通过单元测试代码已经搞清楚了Server端接受请求的类是<code>ApplicationsResource.java</code>, Client端主要核心的代码也在 <code>DiscoveryClient.java</code>中。</p>
+<p>代码还是之前看了好多遍的祖传代码，只是省略了很多内容，只展示我们需要分析的地方。<br> <code>clientConfig.shouldFetchRegistry()</code> 这个配置默认是true，然后<code>fetchRegistry</code>方法中<code>getAndStoreFullRegistry()</code>，因为第一次都是获取全量注册表信息，继续往后。</p>
+<p><code>getAndStoreFullRegistry</code> 方法中可以看到就是发送Http请求给Server端，然后等待Server端返回全量注册表信息。</p>
+<p>这里获取全量请求执行的是<code>eurekaTransport.queryClient.getApplications(remoteRegionsRef.get())</code></p>
+<p>然后再一路往下，跟踪到 <code>AbstractJersey2EurekaHttpClient.java</code>中，<code>getApplicationsInternal</code>方法，发下发送的是<code>GET</code>请求，于是到Server端<code>ApplicationsResource.java</code>中的<code>GET</code>方法<code>getContainers</code>中查看逻辑</p>
+<h3 id="server端返回注册表信息集合的多级缓存机制"><a href="#server端返回注册表信息集合的多级缓存机制" class="headerlink" title="server端返回注册表信息集合的多级缓存机制"></a>server端返回注册表信息集合的多级缓存机制</h3><p>上面已经看了Client端 发送抓取全量注册表的逻辑，到了Server端查看<code>ApplicationsResource.java</code>中的<code>GET</code>方法<code>getContainers</code>，接着看看这部分的源码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> ResponseCache responseCache;</span><br><span class="line"></span><br><span class="line"><span class="meta">@GET</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Response <span class="title">getContainers</span><span class="params">(@PathParam(<span class="string">"version"</span>)</span> String version,</span></span><br><span class="line"><span class="function">                              @<span class="title">HeaderParam</span><span class="params">(HEADER_ACCEPT)</span> String acceptHeader,</span></span><br><span class="line"><span class="function">                              @<span class="title">HeaderParam</span><span class="params">(HEADER_ACCEPT_ENCODING)</span> String acceptEncoding,</span></span><br><span class="line"><span class="function">                              @<span class="title">HeaderParam</span><span class="params">(EurekaAccept.HTTP_X_EUREKA_ACCEPT)</span> String eurekaAccept,</span></span><br><span class="line"><span class="function">                              @Context UriInfo uriInfo,</span></span><br><span class="line"><span class="function">                              @Nullable @<span class="title">QueryParam</span><span class="params">(<span class="string">"regions"</span>)</span> String regionsStr) </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略部分代码</span></span><br><span class="line"></span><br><span class="line">    Key cacheKey = <span class="keyword">new</span> Key(Key.EntityType.Application,</span><br><span class="line">            ResponseCacheImpl.ALL_APPS,</span><br><span class="line">            keyType, CurrentRequestVersion.get(), EurekaAccept.fromString(eurekaAccept), regions</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    Response response;</span><br><span class="line">    <span class="keyword">if</span> (acceptEncoding != <span class="keyword">null</span> &amp;&amp; acceptEncoding.contains(HEADER_GZIP_VALUE)) &#123;</span><br><span class="line">        response = Response.ok(responseCache.getGZIP(cacheKey))</span><br><span class="line">                .header(HEADER_CONTENT_ENCODING, HEADER_GZIP_VALUE)</span><br><span class="line">                .header(HEADER_CONTENT_TYPE, returnMediaType)</span><br><span class="line">                .build();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        response = Response.ok(responseCache.get(cacheKey))</span><br><span class="line">                .build();</span><br><span class="line">    &#125;</span><br><span class="line">    CurrentRequestVersion.remove();</span><br><span class="line">    <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里接收到Client端的请求后，会去<code>responseCache</code> 中去拿去全量的数据信息。<br> 从属性名字就可以看出来，这个是从缓存中获取数据。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">ResponseCacheImpl.java</span><br><span class="line"><span class="function">String <span class="title">get</span><span class="params">(<span class="keyword">final</span> Key key, <span class="keyword">boolean</span> useReadOnlyCache)</span> </span>&#123;</span><br><span class="line">    Value payload = getValue(key, useReadOnlyCache);</span><br><span class="line">    <span class="keyword">if</span> (payload == <span class="keyword">null</span> || payload.getPayload().equals(EMPTY_PAYLOAD)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> payload.getPayload();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Value <span class="title">getValue</span><span class="params">(<span class="keyword">final</span> Key key, <span class="keyword">boolean</span> useReadOnlyCache)</span> </span>&#123;</span><br><span class="line">    Value payload = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (useReadOnlyCache) &#123;</span><br><span class="line">            <span class="keyword">final</span> Value currentPayload = readOnlyCacheMap.get(key);</span><br><span class="line">            <span class="keyword">if</span> (currentPayload != <span class="keyword">null</span>) &#123;</span><br><span class="line">                payload = currentPayload;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                payload = readWriteCacheMap.get(key);</span><br><span class="line">                readOnlyCacheMap.put(key, payload);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            payload = readWriteCacheMap.get(key);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        logger.error(<span class="string">"Cannot get value for key : &#123;&#125;"</span>, key, t);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> payload;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里主要关注<code>getValue</code>方法，这里主要有两个map，一个是<code>readOnlyCacheMap</code> 另一个是<code>readWriteCacheMap</code>, 这里我们光看名字就可以知道一个是只读缓存，一个是读写缓存，这里用了两层的缓存结构，如果只读缓存不为空 则直接返回，如果为空查询可读缓存。</p>
+<p>关于缓存的讲解 我们继续往下看。</p>
+<h3 id="server端注册表多级缓存过期机制：主动-定时-被动"><a href="#server端注册表多级缓存过期机制：主动-定时-被动" class="headerlink" title="server端注册表多级缓存过期机制：主动+定时+被动"></a>server端注册表多级缓存过期机制：主动+定时+被动</h3><p><strong>继续看缓存相关，用到了多级缓存这里可能就会存在一些疑问：</strong></p>
+<ol>
+<li>两级缓存数据如何保存同步？</li>
+<li>缓存数据如何过期？</li>
+</ol>
+<p>带着疑问我们来继续看源代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> ConcurrentMap&lt;Key, Value&gt; readOnlyCacheMap = <span class="keyword">new</span> ConcurrentHashMap&lt;Key, Value&gt;();</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> LoadingCache&lt;Key, Value&gt; readWriteCacheMap;</span><br><span class="line"></span><br><span class="line">ResponseCacheImpl(EurekaServerConfig serverConfig, ServerCodecs serverCodecs, AbstractInstanceRegistry registry) &#123;</span><br><span class="line">    <span class="comment">// 省略部分代码</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">long</span> responseCacheUpdateIntervalMs = serverConfig.getResponseCacheUpdateIntervalMs();</span><br><span class="line">    <span class="keyword">this</span>.readWriteCacheMap =</span><br><span class="line">            CacheBuilder.newBuilder().initialCapacity(serverConfig.getInitialCapacityOfResponseCache())</span><br><span class="line">                    .expireAfterWrite(serverConfig.getResponseCacheAutoExpirationInSeconds(), TimeUnit.SECONDS)</span><br><span class="line">                    .removalListener(<span class="keyword">new</span> RemovalListener&lt;Key, Value&gt;() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onRemoval</span><span class="params">(RemovalNotification&lt;Key, Value&gt; notification)</span> </span>&#123;</span><br><span class="line">                            Key removedKey = notification.getKey();</span><br><span class="line">                            <span class="keyword">if</span> (removedKey.hasRegions()) &#123;</span><br><span class="line">                                Key cloneWithNoRegions = removedKey.cloneWithoutRegions();</span><br><span class="line">                                regionSpecificKeys.remove(cloneWithNoRegions, removedKey);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;)</span><br><span class="line">                    .build(<span class="keyword">new</span> CacheLoader&lt;Key, Value&gt;() &#123;</span><br><span class="line">                        <span class="meta">@Override</span></span><br><span class="line">                        <span class="function"><span class="keyword">public</span> Value <span class="title">load</span><span class="params">(Key key)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                            <span class="keyword">if</span> (key.hasRegions()) &#123;</span><br><span class="line">                                Key cloneWithNoRegions = key.cloneWithoutRegions();</span><br><span class="line">                                regionSpecificKeys.put(cloneWithNoRegions, key);</span><br><span class="line">                            &#125;</span><br><span class="line">                            Value value = generatePayload(key);</span><br><span class="line">                            <span class="keyword">return</span> value;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略部分代码</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><code>readOnlyCacheMap</code>用的是ConcurrentHashMap，线程安全的。<br> <code>readWriteCacheMap</code>用的是GuavaCache，不懂的小伙伴可以自己阅读以下，我之前的博客也有讲解这个，这个是谷歌开源的Guava项目基于内存的缓存，其内部也是实现的Map结构。</li>
+<li>主要重点我们来看下GuavaCache，这里初始化大小是<code>serverConfig.getInitialCapacityOfResponseCache()</code> 默认是1000，也是Map的初始大小。<br> <code>expireAfterWrite</code> 刷新时间是<code>serverConfig.getResponseCacheAutoExpirationInSeconds()</code>默认时间是180s。<br> 接着是build方法，这里获取注册表信息就是用的<code>generatePayload</code>方法，如果查询readWriteCacheMap中注册表信息为空，这会执行build方法。</li>
+</ol>
+<p>继续跟进<code>generatePayload</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Value <span class="title">generatePayload</span><span class="params">(Key key)</span> </span>&#123;</span><br><span class="line">    Stopwatch tracer = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String payload;</span><br><span class="line">        <span class="keyword">switch</span> (key.getEntityType()) &#123;</span><br><span class="line">            <span class="keyword">case</span> Application:</span><br><span class="line">                <span class="keyword">boolean</span> isRemoteRegionRequested = key.hasRegions();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (ALL_APPS.equals(key.getName())) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (isRemoteRegionRequested) &#123;</span><br><span class="line">                        tracer = serializeAllAppsWithRemoteRegionTimer.start();</span><br><span class="line">                        payload = getPayLoad(key, registry.getApplicationsFromMultipleRegions(key.getRegions()));</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        tracer = serializeAllAppsTimer.start();</span><br><span class="line">                        payload = getPayLoad(key, registry.getApplications());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ALL_APPS_DELTA.equals(key.getName())) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (isRemoteRegionRequested) &#123;</span><br><span class="line">                        tracer = serializeDeltaAppsWithRemoteRegionTimer.start();</span><br><span class="line">                        versionDeltaWithRegions.incrementAndGet();</span><br><span class="line">                        versionDeltaWithRegionsLegacy.incrementAndGet();</span><br><span class="line">                        payload = getPayLoad(key,</span><br><span class="line">                                registry.getApplicationDeltasFromMultipleRegions(key.getRegions()));</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        tracer = serializeDeltaAppsTimer.start();</span><br><span class="line">                        versionDelta.incrementAndGet();</span><br><span class="line">                        versionDeltaLegacy.incrementAndGet();</span><br><span class="line">                        payload = getPayLoad(key, registry.getApplicationDeltas());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Value(payload);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (tracer != <span class="keyword">null</span>) &#123;</span><br><span class="line">            tracer.stop();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个代码删减了一部分，到时增量抓取注册表也会走这个逻辑，<code>ALL_APPS</code>就是全量抓取，<code>ALL_APPS_DELTA</code>就是增量抓取的意思，这里先插个眼，一会增量抓取注册表的逻辑再回头看。</p>
+<p>上面的逻辑我们只需要关注<code>registry.getApplicationsFromMultipleRegions</code> 即可，这个是获取注册表的逻辑。接着继续往下跟代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">AbstractInstanceRegistry.java</span><br><span class="line"><span class="function"><span class="keyword">public</span> Applications <span class="title">getApplicationsFromMultipleRegions</span><span class="params">(String[] remoteRegions)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    Applications apps = <span class="keyword">new</span> Applications();</span><br><span class="line">    apps.setVersion(<span class="number">1L</span>);</span><br><span class="line">    <span class="keyword">for</span> (Entry&lt;String, Map&lt;String, Lease&lt;InstanceInfo&gt;&gt;&gt; entry : registry.entrySet()) &#123;</span><br><span class="line">        Application app = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (entry.getValue() != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (Entry&lt;String, Lease&lt;InstanceInfo&gt;&gt; stringLeaseEntry : entry.getValue().entrySet()) &#123;</span><br><span class="line">                Lease&lt;InstanceInfo&gt; lease = stringLeaseEntry.getValue();</span><br><span class="line">                <span class="keyword">if</span> (app == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    app = <span class="keyword">new</span> Application(lease.getHolder().getAppName());</span><br><span class="line">                &#125;</span><br><span class="line">                app.addInstance(decorateInstanceInfo(lease));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (app != <span class="keyword">null</span>) &#123;</span><br><span class="line">            apps.addApplication(app);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (includeRemoteRegion) &#123;</span><br><span class="line">        <span class="keyword">for</span> (String remoteRegion : remoteRegions) &#123;</span><br><span class="line">            RemoteRegionRegistry remoteRegistry = regionNameVSRemoteRegistry.get(remoteRegion);</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> != remoteRegistry) &#123;</span><br><span class="line">                Applications remoteApps = remoteRegistry.getApplications();</span><br><span class="line">                <span class="keyword">for</span> (Application application : remoteApps.getRegisteredApplications()) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (shouldFetchFromRemoteRegistry(application.getName(), remoteRegion)) &#123;</span><br><span class="line">                        logger.info(<span class="string">"Application &#123;&#125;  fetched from the remote region &#123;&#125;"</span>,</span><br><span class="line">                                application.getName(), remoteRegion);</span><br><span class="line"></span><br><span class="line">                        Application appInstanceTillNow = apps.getRegisteredApplications(application.getName());</span><br><span class="line">                        <span class="keyword">if</span> (appInstanceTillNow == <span class="keyword">null</span>) &#123;</span><br><span class="line">                            appInstanceTillNow = <span class="keyword">new</span> Application(application.getName());</span><br><span class="line">                            apps.addApplication(appInstanceTillNow);</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">for</span> (InstanceInfo instanceInfo : application.getInstances()) &#123;</span><br><span class="line">                            appInstanceTillNow.addInstance(instanceInfo);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        logger.debug(<span class="string">"Application &#123;&#125; not fetched from the remote region &#123;&#125; as there exists a "</span></span><br><span class="line">                                        + <span class="string">"whitelist and this app is not in the whitelist."</span>,</span><br><span class="line">                                application.getName(), remoteRegion);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                logger.warn(<span class="string">"No remote registry available for the remote region &#123;&#125;"</span>, remoteRegion);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    apps.setAppsHashCode(apps.getReconcileHashCode());</span><br><span class="line">    <span class="keyword">return</span> apps;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里再看到 <code>registry.entrySet()</code>是不是会特别亲切？<code>Map&gt;</code> 我们上一篇讲Client注册的时候 就是将注册信息放入到registry对应这个数据结构中的，果不其然，这里拿到所有的注册信息，然后封装到<code>Applications</code> 对象中的。</p>
+<p>这里最后<code>apps.setAppsHashCode()</code>逻辑，先插个眼 后面讲增量同步有类似的逻辑，后面再回头看。接着再回头看 返回数据后 <code>readWriteCacheMap</code> 的操作逻辑。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (shouldUseReadOnlyResponseCache) &#123;</span><br><span class="line">    timer.schedule(getCacheUpdateTask(),</span><br><span class="line">            <span class="keyword">new</span> Date(((System.currentTimeMillis() / responseCacheUpdateIntervalMs) * responseCacheUpdateIntervalMs)</span><br><span class="line">                    + responseCacheUpdateIntervalMs),</span><br><span class="line">            responseCacheUpdateIntervalMs);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> TimerTask <span class="title">getCacheUpdateTask</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> TimerTask() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            logger.debug(<span class="string">"Updating the client cache from response cache"</span>);</span><br><span class="line">            <span class="keyword">for</span> (Key key : readOnlyCacheMap.keySet()) &#123;</span><br><span class="line">                <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">                    logger.debug(<span class="string">"Updating the client cache from response cache for key : &#123;&#125; &#123;&#125; &#123;&#125; &#123;&#125;"</span>,</span><br><span class="line">                            key.getEntityType(), key.getName(), key.getVersion(), key.getType());</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    CurrentRequestVersion.set(key.getVersion());</span><br><span class="line">                    Value cacheValue = readWriteCacheMap.get(key);</span><br><span class="line">                    Value currentCacheValue = readOnlyCacheMap.get(key);</span><br><span class="line">                    <span class="keyword">if</span> (cacheValue != currentCacheValue) &#123;</span><br><span class="line">                        readOnlyCacheMap.put(key, cacheValue);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Throwable th) &#123;</span><br><span class="line">                    logger.error(<span class="string">"Error while updating the client cache from response cache for key &#123;&#125;"</span>, key.toStringCompact(), th);</span><br><span class="line">                &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                    CurrentRequestVersion.remove();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里是起了一个调度任务，会去定时比较一级和二级缓存是否一致，如果不一致 就会用二级缓存覆盖一级缓存。这就回答了上面的第一个问题，两级缓存一致性的问题，默认30s执行一次。所以这里仍会有问题，可能缓存在30s内会存在不一致的情况，这里用的是最终一致的思想。</p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/201912/799093-20191230100155385-1911116225.png" alt="image.png"></p>
+<p>紧接着 读写缓存获取到数据后再去回写只读缓存，这是上面<code>ResponseCacheImpl.java</code> 的逻辑，到了这里 全量抓取注册表的代码都已经看完了，这里主要的亮点是使用了两级缓存策略来返回对应的数据。</p>
+<p>接着整理下过期的几个机制，也是回应上面抛出的第二个问题。</p>
+<p><strong>用一张图作为总结：</strong></p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/201912/799093-20191230100156361-820219091.png" alt="05_EurekaServer多节缓存过期机制.png"></p>
+<ol>
+<li><p>主动过期<br> readWriteCacheMap，读写缓存</p>
+<p>有新的服务实例发生注册、下线、故障的时候，就会去刷新readWriteCacheMap（在Client注册的时候，AbstractInstanceRegistry中register方法最后会有一个invalidateCache()方法）</p>
+<p>比如说现在有一个服务A，ServiceA，有一个新的服务实例，Instance010来注册了，注册完了之后，其实必须是得刷新这个缓存的，然后就会调用ResponseCache.invalidate()，将之前缓存好的ALL_APPS这个key对应的缓存，给他过期掉</p>
+<p>将readWriteCacheMap中的ALL_APPS缓存key，对应的缓存给过期掉</p>
+</li>
+<li><p>定时过期</p>
+<p>readWriteCacheMap在构建的时候，指定了一个自动过期的时间，默认值就是180秒，所以你往readWriteCacheMap中放入一个数据过后，自动会等180秒过后，就将这个数据给他过期了</p>
+</li>
+<li><p>被动过期</p>
+<p>readOnlyCacheMap怎么过期呢？<br> 默认是每隔30秒，执行一个定时调度的线程任务，TimerTask，有一个逻辑，会每隔30秒，对readOnlyCacheMap和readWriteCacheMap中的数据进行一个比对，如果两块数据是不一致的，那么就将readWriteCacheMap中的数据放到readOnlyCacheMap中来。</p>
+<p>比如说readWriteCacheMap中，ALL_APPS这个key对应的缓存没了，那么最多30秒过后，就会同步到readOnelyCacheMap中去。</p>
+</li>
+</ol>
+<h3 id="client端增量抓取注册表逻辑"><a href="#client端增量抓取注册表逻辑" class="headerlink" title="client端增量抓取注册表逻辑"></a>client端增量抓取注册表逻辑</h3><p>上面抓取全量注册表的代码已经说了，这里来讲一下增量抓取，入口还是在<code>DiscoverClient.java</code><br> 中，当初始化完<code>DiscoverClient.java</code> 后会执行一个初始化定时任务的方法<code>initScheduledTasks()</code>， 其中这个里面就会每隔30s 增量抓取一次注册表信息。</p>
+<p>这里就不跟着这里的逻辑一步步看了，看过上面的代码后 应该会对这里比较清晰了，这里我们直接看Server端代码了。</p>
+<p>还记的我们上面插过的眼，获取全量用的是<code>ALL_APPS</code> 增量用的是<code>ALL_APPS_DELTA</code>， 所以我们这里只看增量的逻辑就行了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (ALL_APPS_DELTA.equals(key.getName())) &#123;</span><br><span class="line">    <span class="keyword">if</span> (isRemoteRegionRequested) &#123;</span><br><span class="line">        tracer = serializeDeltaAppsWithRemoteRegionTimer.start();</span><br><span class="line">        versionDeltaWithRegions.incrementAndGet();</span><br><span class="line">        versionDeltaWithRegionsLegacy.incrementAndGet();</span><br><span class="line">        payload = getPayLoad(key,</span><br><span class="line">                registry.getApplicationDeltasFromMultipleRegions(key.getRegions()));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        tracer = serializeDeltaAppsTimer.start();</span><br><span class="line">        versionDelta.incrementAndGet();</span><br><span class="line">        versionDeltaLegacy.incrementAndGet();</span><br><span class="line">        payload = getPayLoad(key, registry.getApplicationDeltas());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面只是截取了部分代码，这里直接看主要的逻辑<code>registry.getApplicationDeltasFromMultipleRegions</code>即可，这个和全量的方法名只有一个Deltas的区别。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Applications <span class="title">getApplicationDeltasFromMultipleRegions</span><span class="params">(String[] remoteRegions)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == remoteRegions) &#123;</span><br><span class="line">        remoteRegions = allKnownRemoteRegions; <span class="comment">// null means all remote regions.</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> includeRemoteRegion = remoteRegions.length != <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (includeRemoteRegion) &#123;</span><br><span class="line">        GET_ALL_WITH_REMOTE_REGIONS_CACHE_MISS_DELTA.increment();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        GET_ALL_CACHE_MISS_DELTA.increment();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Applications apps = <span class="keyword">new</span> Applications();</span><br><span class="line">    apps.setVersion(responseCache.getVersionDeltaWithRegions().get());</span><br><span class="line">    Map&lt;String, Application&gt; applicationInstancesMap = <span class="keyword">new</span> HashMap&lt;String, Application&gt;();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        write.lock();</span><br><span class="line">        Iterator&lt;RecentlyChangedItem&gt; iter = <span class="keyword">this</span>.recentlyChangedQueue.iterator();</span><br><span class="line">        logger.debug(<span class="string">"The number of elements in the delta queue is :&#123;&#125;"</span>, <span class="keyword">this</span>.recentlyChangedQueue.size());</span><br><span class="line">        <span class="keyword">while</span> (iter.hasNext()) &#123;</span><br><span class="line">            Lease&lt;InstanceInfo&gt; lease = iter.next().getLeaseInfo();</span><br><span class="line">            InstanceInfo instanceInfo = lease.getHolder();</span><br><span class="line">            logger.debug(<span class="string">"The instance id &#123;&#125; is found with status &#123;&#125; and actiontype &#123;&#125;"</span>,</span><br><span class="line">                    instanceInfo.getId(), instanceInfo.getStatus().name(), instanceInfo.getActionType().name());</span><br><span class="line">            Application app = applicationInstancesMap.get(instanceInfo.getAppName());</span><br><span class="line">            <span class="keyword">if</span> (app == <span class="keyword">null</span>) &#123;</span><br><span class="line">                app = <span class="keyword">new</span> Application(instanceInfo.getAppName());</span><br><span class="line">                applicationInstancesMap.put(instanceInfo.getAppName(), app);</span><br><span class="line">                apps.addApplication(app);</span><br><span class="line">            &#125;</span><br><span class="line">            app.addInstance(<span class="keyword">new</span> InstanceInfo(decorateInstanceInfo(lease)));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (includeRemoteRegion) &#123;</span><br><span class="line">            <span class="keyword">for</span> (String remoteRegion : remoteRegions) &#123;</span><br><span class="line">                RemoteRegionRegistry remoteRegistry = regionNameVSRemoteRegistry.get(remoteRegion);</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">null</span> != remoteRegistry) &#123;</span><br><span class="line">                    Applications remoteAppsDelta = remoteRegistry.getApplicationDeltas();</span><br><span class="line">                    <span class="keyword">if</span> (<span class="keyword">null</span> != remoteAppsDelta) &#123;</span><br><span class="line">                        <span class="keyword">for</span> (Application application : remoteAppsDelta.getRegisteredApplications()) &#123;</span><br><span class="line">                            <span class="keyword">if</span> (shouldFetchFromRemoteRegistry(application.getName(), remoteRegion)) &#123;</span><br><span class="line">                                Application appInstanceTillNow =</span><br><span class="line">                                        apps.getRegisteredApplications(application.getName());</span><br><span class="line">                                <span class="keyword">if</span> (appInstanceTillNow == <span class="keyword">null</span>) &#123;</span><br><span class="line">                                    appInstanceTillNow = <span class="keyword">new</span> Application(application.getName());</span><br><span class="line">                                    apps.addApplication(appInstanceTillNow);</span><br><span class="line">                                &#125;</span><br><span class="line">                                <span class="keyword">for</span> (InstanceInfo instanceInfo : application.getInstances()) &#123;</span><br><span class="line">                                    appInstanceTillNow.addInstance(<span class="keyword">new</span> InstanceInfo(instanceInfo));</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Applications allApps = getApplicationsFromMultipleRegions(remoteRegions);</span><br><span class="line">        apps.setAppsHashCode(allApps.getReconcileHashCode());</span><br><span class="line">        <span class="keyword">return</span> apps;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        write.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里代码还是比较多的，我们只需要抓住重点即可：</p>
+<ol>
+<li>从<code>recentlyChangedQueue</code>中获取注册信息，从名字可以看出来 这是最近改变的client注册信息的队列</li>
+<li>使用writeLock，因为这里是获取增量注册信息，是从队列中获取，如果不加写锁，那么获取的时候又有新数据加入队列中，新数据会获取不到的</li>
+</ol>
+<p>基于上面第一点，我们来看看这个队列怎么做的：</p>
+<ol>
+<li>数据结构：<code>ConcurrentLinkedQueue  recentlyChangedQueue</code></li>
+<li><code>AbstractInstanceRegistry.java</code>初始化的时候会启动一个定时任务，默认30s中执行一次。如果注册时间小于当前时间的180s，就会放到这个队列中</li>
+</ol>
+<p><code>AbstractInstanceRegistry.java</code>具体代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="title">AbstractInstanceRegistry</span><span class="params">(EurekaServerConfig serverConfig, EurekaClientConfig clientConfig, ServerCodecs serverCodecs)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.serverConfig = serverConfig;</span><br><span class="line">    <span class="keyword">this</span>.clientConfig = clientConfig;</span><br><span class="line">    <span class="keyword">this</span>.serverCodecs = serverCodecs;</span><br><span class="line">    <span class="keyword">this</span>.recentCanceledQueue = <span class="keyword">new</span> CircularQueue&lt;Pair&lt;Long, String&gt;&gt;(<span class="number">1000</span>);</span><br><span class="line">    <span class="keyword">this</span>.recentRegisteredQueue = <span class="keyword">new</span> CircularQueue&lt;Pair&lt;Long, String&gt;&gt;(<span class="number">1000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.renewsLastMin = <span class="keyword">new</span> MeasuredRate(<span class="number">1000</span> * <span class="number">60</span> * <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.deltaRetentionTimer.schedule(getDeltaRetentionTask(),</span><br><span class="line">            serverConfig.getDeltaRetentionTimerIntervalInMs(),</span><br><span class="line">            serverConfig.getDeltaRetentionTimerIntervalInMs());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> TimerTask <span class="title">getDeltaRetentionTask</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> TimerTask() &#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            Iterator&lt;RecentlyChangedItem&gt; it = recentlyChangedQueue.iterator();</span><br><span class="line">            <span class="keyword">while</span> (it.hasNext()) &#123;</span><br><span class="line">                <span class="keyword">if</span> (it.next().getLastUpdateTime() &lt;</span><br><span class="line">                        System.currentTimeMillis() - serverConfig.getRetentionTimeInMSInDeltaQueue()) &#123;</span><br><span class="line">                    it.remove();</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里就能看明白了，也就是说增量抓取会获取EurekaServer端3分钟内保存的变动的Client信息。<br> 最后还有一个亮点，我们上面说过，无论是全量抓取还是增量抓取，最后都会返回一个全量注册表的hash值，代码是<code>apps.setAppsHashCode(allApps.getReconcileHashCode());</code>, 其中apps就是返回的<code>Applications</code>中的属性，最后我们再看看这个hashCode的用法。</p>
+<p>回到<code>DiscoveryClient.java</code>, 找到<code>refreshRegistry</code> 方法，然后一路跟踪到<code>getAndUpdateDelta</code>方法，这里具体代码我就不贴了，流程如下：</p>
+<ol>
+<li>获取delta增量数据</li>
+<li>根据增量数据和本地注册表数据进行合并</li>
+<li>计算中本地注册表信息的hashCode值</li>
+<li>如果本地hashCode值和server端返回的hashCode值不一致则再全量获取一次注册表信息</li>
+</ol>
+<p>最后一张图总结增量注册表抓取逻辑：</p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/201912/799093-20191230100157542-1986591842.png" alt="06_EurekaClient增量抓取注册表流程.png"></p>
+<h3 id="总结-amp-感悟"><a href="#总结-amp-感悟" class="headerlink" title="总结&amp;感悟"></a>总结&amp;感悟</h3><p>这篇文章写得有点长了，确实自己也很用心去写了，我感觉这里多级缓存机制+增量数据Hash一致性的对比方案做的很优秀，如果要我做一个数据全量+增量同步 我也会借鉴这种方案。</p>
+<p>看源码 能够学到的就是别人的设计思想。总结的部分可以看上面的一些图，注册表抓取的源码学习就到这了，后面 还准备看下心跳机制、保护机制、集群等等一些的源码。</p>
+<p>这里读完源码之后会发下一个问题：</p>
+<p>假设有服务实例注册、下线、故障，要调用这个服务的其他服务，可能会过30秒之后才能感知倒，为什么呢？因为这里再获取服务注册表的时候，有一个多级缓存的机制，最多是30秒后才会去更新一级缓存。</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2019\12\31\[Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取]\" rel="bookmark">Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\03\[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]\" rel="bookmark">Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\10\[Nexflix Eureka 源码九：服务下线及实例摘除，一个client下线到底多久才会被其他实例感知？]\" rel="bookmark">Nexflix Eureka 源码九：服务下线及实例摘除</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\02\[Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建]\" rel="bookmark">Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\05\[Nexflix Eureka 源码五：在眼花缭乱的代码中，EurekaClient是如何注册的？]\" rel="bookmark">Nexflix Eureka 源码五：在眼花缭乱的代码中，EurekaClient是如何注册的？</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nexflix-Eureka/" rel="tag"># Nexflix Eureka</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2020/01/07/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%85%AD%EF%BC%9A%E9%80%9A%E8%BF%87%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E6%9D%A5Debug%20Eureka%E6%B3%A8%E5%86%8C%E8%BF%87%E7%A8%8B%5D/" rel="next" title="Nexflix Eureka 源码六：通过单元测试来Debug Eureka注册过程">
+                  <i class="fa fa-chevron-left"></i> Nexflix Eureka 源码六：通过单元测试来Debug Eureka注册过程
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2020/01/10/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%85%AB%EF%BC%9A%E6%9C%8D%E5%8A%A1%E7%BB%AD%E7%BA%A6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%5D/" rel="prev" title="Nexflix Eureka 源码八：服务续约源码分析">
+                  Nexflix Eureka 源码八：服务续约源码分析 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Nexflix-Eureka-源码七：EurekaClient注册表抓取"><span class="nav-number">1.</span> <span class="nav-text">[Nexflix Eureka 源码七：EurekaClient注册表抓取]</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.0.1.</span> <span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#前情回顾"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">前情回顾</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#本讲目录"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">本讲目录</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EurekaClient全量抓取注册表逻辑"><span class="nav-number">1.0.2.</span> <span class="nav-text">EurekaClient全量抓取注册表逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#源码解析"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">源码解析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#server端返回注册表信息集合的多级缓存机制"><span class="nav-number">1.0.3.</span> <span class="nav-text">server端返回注册表信息集合的多级缓存机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#server端注册表多级缓存过期机制：主动-定时-被动"><span class="nav-number">1.0.4.</span> <span class="nav-text">server端注册表多级缓存过期机制：主动+定时+被动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#client端增量抓取注册表逻辑"><span class="nav-number">1.0.5.</span> <span class="nav-text">client端增量抓取注册表逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结-amp-感悟"><span class="nav-number">1.0.6.</span> <span class="nav-text">总结&amp;感悟</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="沈小布"
+      src="/images/head.gif">
+  <p class="site-author-name" itemprop="name">沈小布</p>
+  <div class="site-description" itemprop="description">种一棵树最好的时间是十年前 其次是现在</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/yourname" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:yourname@gmail.com" title="E-Mail → mailto:yourname@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/yourname" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/yourname" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-google"></i>Google</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">沈小布</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">201k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:03</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+
+  <script>
+      var now = new Date(); 
+      function createtime() { 
+          var grt= new Date("03/12/2019 12:00:00");//此处修改你的建站时间或者网站上线时间 
+          now.setTime(now.getTime()+250); 
+          days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+          hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+          if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+          mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+          seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+          snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+          document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 "; 
+          document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+      } 
+  setInterval("createtime()",250);
+  </script>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

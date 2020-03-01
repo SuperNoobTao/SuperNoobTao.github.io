@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="业精于勤荒于嬉" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="[Nexflix Eureka 源码八：服务续约源码分析]前言前情回顾上一讲 我们讲解了服务发现的相关逻辑，所谓服务发现 其实就是注册表抓取，服务实例默认每隔30s去注册中心抓取一下注册表增量数据，然后合并本地注册表数据，最后有个hash对比的操作。">
+<meta name="keywords" content="Nexflix Eureka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nexflix Eureka 源码八：服务续约源码分析">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;01&#x2F;10&#x2F;[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%85%AB%EF%BC%9A%E6%9C%8D%E5%8A%A1%E7%BB%AD%E7%BA%A6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90]&#x2F;index.html">
+<meta property="og:site_name" content="业精于勤荒于嬉">
+<meta property="og:description" content="[Nexflix Eureka 源码八：服务续约源码分析]前言前情回顾上一讲 我们讲解了服务发现的相关逻辑，所谓服务发现 其实就是注册表抓取，服务实例默认每隔30s去注册中心抓取一下注册表增量数据，然后合并本地注册表数据，最后有个hash对比的操作。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-03-01T15:12:11.972Z">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/10/[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%85%AB%EF%BC%9A%E6%9C%8D%E5%8A%A1%E7%BB%AD%E7%BA%A6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90]/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Nexflix Eureka 源码八：服务续约源码分析 | 业精于勤荒于嬉</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">业精于勤荒于嬉</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">行成于思毁于随</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-fw fa-heartbeat"></i>公益 404</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/10/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%85%AB%EF%BC%9A%E6%9C%8D%E5%8A%A1%E7%BB%AD%E7%BA%A6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%5D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.gif">
+      <meta itemprop="name" content="沈小布">
+      <meta itemprop="description" content="种一棵树最好的时间是十年前 其次是现在">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="业精于勤荒于嬉">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nexflix Eureka 源码八：服务续约源码分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-10 22:05:37" itemprop="dateCreated datePublished" datetime="2020-01-10T22:05:37+08:00">2020-01-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-01 23:12:11" itemprop="dateModified" datetime="2020-03-01T23:12:11+08:00">2020-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%BA%90%E7%A0%81/" itemprop="url" rel="index">
+                    <span itemprop="name">源码</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Nexflix-Eureka-源码八：服务续约源码分析"><a href="#Nexflix-Eureka-源码八：服务续约源码分析" class="headerlink" title="[Nexflix Eureka 源码八：服务续约源码分析]"></a>[Nexflix Eureka 源码八：服务续约源码分析]</h1><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><h4 id="前情回顾"><a href="#前情回顾" class="headerlink" title="前情回顾"></a>前情回顾</h4><p>上一讲 我们讲解了服务发现的相关逻辑，所谓服务发现 其实就是注册表抓取，服务实例默认每隔30s去注册中心抓取一下注册表增量数据，然后合并本地注册表数据，最后有个hash对比的操作。</p>
+<a id="more"></a>
+
+<h4 id="本讲目录"><a href="#本讲目录" class="headerlink" title="本讲目录"></a>本讲目录</h4><p>今天主要是看下服务续约的逻辑，服务续约就是client端给server端发送心跳检测，告诉对方我还活着。现在很多分布式系统都会有心跳检查的机制，这里一起来学习下Eureka是怎么做心跳检查的。</p>
+<p><strong>目录如下：</strong></p>
+<ol>
+<li>client端心跳检查调度任务</li>
+<li>server端接收心跳检查，设置最后renew时间</li>
+</ol>
+<p>这一讲内容不太多，因为上一篇文章写全量和增量注册表信息内容有点多，所以这里将博客尽量一篇保持一个知识点，后面还会讲服务实例下线、摘除、注册中心自我保护等机制的实现原理。</p>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><h4 id="client端心跳检查调度任务"><a href="#client端心跳检查调度任务" class="headerlink" title="client端心跳检查调度任务"></a>client端心跳检查调度任务</h4><p>服务实例续约代码比较简单，这里还是从<code>DiscovertClient.java</code> 开始，很多源码的入口都是在这里，因为client端初始化、注册 都是走的这里，因为前几篇文章对这个类已经分析很多了，这里只截取部分重要代码：</p>
+<p><code>DiscovertClient.java</code> 初始化后 会继续初始化一些调度任务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initScheduledTasks</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (clientConfig.shouldRegisterWithEureka()) &#123;</span><br><span class="line">        <span class="comment">//  默认也是30s</span></span><br><span class="line">        <span class="keyword">int</span> renewalIntervalInSecs = instanceInfo.getLeaseInfo().getRenewalIntervalInSecs();</span><br><span class="line">        <span class="keyword">int</span> expBackOffBound = clientConfig.getHeartbeatExecutorExponentialBackOffBound();</span><br><span class="line">        logger.info(<span class="string">"Starting heartbeat executor: "</span> + <span class="string">"renew interval is: "</span> + renewalIntervalInSecs);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Heartbeat timer</span></span><br><span class="line">        <span class="comment">// 执行heartbeatExecutor心跳检查，默认是30s</span></span><br><span class="line">        scheduler.schedule(</span><br><span class="line">                <span class="keyword">new</span> TimedSupervisorTask(</span><br><span class="line">                        <span class="string">"heartbeat"</span>,</span><br><span class="line">                        scheduler,</span><br><span class="line">                        heartbeatExecutor,</span><br><span class="line">                        renewalIntervalInSecs,</span><br><span class="line">                        TimeUnit.SECONDS,</span><br><span class="line">                        expBackOffBound,</span><br><span class="line">                        <span class="keyword">new</span> HeartbeatThread()</span><br><span class="line">                ),</span><br><span class="line">                renewalIntervalInSecs, TimeUnit.SECONDS);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 执行线程</span></span><br><span class="line">        instanceInfoReplicator.start(clientConfig.getInitialInstanceInfoReplicationIntervalSeconds());</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        logger.info(<span class="string">"Not registering with Eureka server per configuration"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">HeartbeatThread</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (renew()) &#123;</span><br><span class="line">            lastSuccessfulHeartbeatTimestamp = System.currentTimeMillis();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">renew</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    EurekaHttpResponse&lt;InstanceInfo&gt; httpResponse;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        httpResponse = eurekaTransport.registrationClient.sendHeartBeat(instanceInfo.getAppName(), instanceInfo.getId(), instanceInfo, <span class="keyword">null</span>);</span><br><span class="line">        logger.debug(<span class="string">"&#123;&#125; - Heartbeat status: &#123;&#125;"</span>, PREFIX + appPathIdentifier, httpResponse.getStatusCode());</span><br><span class="line">        <span class="keyword">if</span> (httpResponse.getStatusCode() == <span class="number">404</span>) &#123;</span><br><span class="line">            REREGISTER_COUNTER.increment();</span><br><span class="line">            logger.info(<span class="string">"&#123;&#125; - Re-registering apps/&#123;&#125;"</span>, PREFIX + appPathIdentifier, instanceInfo.getAppName());</span><br><span class="line">            <span class="keyword">long</span> timestamp = instanceInfo.setIsDirtyWithTime();</span><br><span class="line">            <span class="keyword">boolean</span> success = register();</span><br><span class="line">            <span class="keyword">if</span> (success) &#123;</span><br><span class="line">                instanceInfo.unsetIsDirty(timestamp);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> success;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> httpResponse.getStatusCode() == <span class="number">200</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        logger.error(<span class="string">"&#123;&#125; - was unable to send heartbeat!"</span>, PREFIX + appPathIdentifier, e);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> EurekaHttpResponse&lt;InstanceInfo&gt; <span class="title">sendHeartBeat</span><span class="params">(String appName, String id, InstanceInfo info, InstanceStatus overriddenStatus)</span> </span>&#123;</span><br><span class="line">    String urlPath = <span class="string">"apps/"</span> + appName + <span class="string">'/'</span> + id;</span><br><span class="line">    Response response = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        WebTarget webResource = jerseyClient.target(serviceUrl)</span><br><span class="line">                .path(urlPath)</span><br><span class="line">                .queryParam(<span class="string">"status"</span>, info.getStatus().toString())</span><br><span class="line">                .queryParam(<span class="string">"lastDirtyTimestamp"</span>, info.getLastDirtyTimestamp().toString());</span><br><span class="line">        <span class="keyword">if</span> (overriddenStatus != <span class="keyword">null</span>) &#123;</span><br><span class="line">            webResource = webResource.queryParam(<span class="string">"overriddenstatus"</span>, overriddenStatus.name());</span><br><span class="line">        &#125;</span><br><span class="line">        Builder requestBuilder = webResource.request();</span><br><span class="line">        addExtraProperties(requestBuilder);</span><br><span class="line">        addExtraHeaders(requestBuilder);</span><br><span class="line">        requestBuilder.accept(MediaType.APPLICATION_JSON_TYPE);</span><br><span class="line">        response = requestBuilder.put(Entity.entity(<span class="string">"&#123;&#125;"</span>, MediaType.APPLICATION_JSON_TYPE)); <span class="comment">// Jersey2 refuses to handle PUT with no body</span></span><br><span class="line">        EurekaHttpResponseBuilder&lt;InstanceInfo&gt; eurekaResponseBuilder = anEurekaHttpResponse(response.getStatus(), InstanceInfo<span class="class">.<span class="keyword">class</span>).<span class="title">headers</span>(<span class="title">headersOf</span>(<span class="title">response</span>))</span>;</span><br><span class="line">        <span class="keyword">if</span> (response.hasEntity()) &#123;</span><br><span class="line">            eurekaResponseBuilder.entity(response.readEntity(InstanceInfo<span class="class">.<span class="keyword">class</span>))</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> eurekaResponseBuilder.build();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">            logger.debug(<span class="string">"Jersey2 HTTP PUT &#123;&#125;/&#123;&#125;; statusCode=&#123;&#125;"</span>, serviceUrl, urlPath, response == <span class="keyword">null</span> ? <span class="string">"N/A"</span> : response.getStatus());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (response != <span class="keyword">null</span>) &#123;</span><br><span class="line">            response.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的流程很简单，初始化<code>DiscoveryClient</code> 后会新建一个调度任务，然后执行<code>HeartbeatThread</code>中的run方法，默认是<code>renewalIntervalInSecs</code> 30s执行一次。<br> 具体就是给Server端发送一个http请求，类似于：<code>http://localhost:8080/v2/apps/ServiceA/i-000000-1</code>, 走的是put请求。<br> 最后拿到响应结果，续约成功后会更新<code>lastSuccessfulHeartbeatTimestamp</code> 最近成功心跳检测的时间戳。</p>
+<h4 id="server端接收心跳检查请求"><a href="#server端接收心跳检查请求" class="headerlink" title="server端接收心跳检查请求"></a>server端接收心跳检查请求</h4><p>前几篇文章已经说过，Server端接收http请求的入口在<code>eureka-core</code>模块下的 <code>resource</code>包里面，这里直接找到<code>ApplicationResource.java</code>中的<code>getInstanceInfo</code> 方法，这里直接请求的<code>InstanceResource</code> 类的构造方法，找到这个方法中的<code>@PUT</code>请求。可以直接看下代码：</p>
+<p><code>InstanceResource.renewLease</code> +<code>AbstractInstanceRegistry.renew</code> 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PUT</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Response <span class="title">renewLease</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        @HeaderParam(PeerEurekaNode.HEADER_REPLICATION)</span> String isReplication,</span></span><br><span class="line"><span class="function">        @<span class="title">QueryParam</span><span class="params">(<span class="string">"overriddenstatus"</span>)</span> String overriddenStatus,</span></span><br><span class="line"><span class="function">        @<span class="title">QueryParam</span><span class="params">(<span class="string">"status"</span>)</span> String status,</span></span><br><span class="line"><span class="function">        @<span class="title">QueryParam</span><span class="params">(<span class="string">"lastDirtyTimestamp"</span>)</span> String lastDirtyTimestamp) </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> isFromReplicaNode = <span class="string">"true"</span>.equals(isReplication);</span><br><span class="line">    <span class="keyword">boolean</span> isSuccess = registry.renew(app.getName(), id, isFromReplicaNode);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略部分代码</span></span><br><span class="line"></span><br><span class="line">    logger.debug(<span class="string">"Found (Renew): &#123;&#125; - &#123;&#125;; reply status=&#123;&#125;"</span> + app.getName(), id, response.getStatus());</span><br><span class="line">    <span class="keyword">return</span> response;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">renew</span><span class="params">(String appName, String id, <span class="keyword">boolean</span> isReplication)</span> </span>&#123;</span><br><span class="line">    RENEW.increment(isReplication);</span><br><span class="line">    Map&lt;String, Lease&lt;InstanceInfo&gt;&gt; gMap = registry.get(appName);</span><br><span class="line">    Lease&lt;InstanceInfo&gt; leaseToRenew = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">if</span> (gMap != <span class="keyword">null</span>) &#123;</span><br><span class="line">        leaseToRenew = gMap.get(id);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (leaseToRenew == <span class="keyword">null</span>) &#123;</span><br><span class="line">        RENEW_NOT_FOUND.increment(isReplication);</span><br><span class="line">        logger.warn(<span class="string">"DS: Registry: lease doesn't exist, registering resource: &#123;&#125; - &#123;&#125;"</span>, appName, id);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        InstanceInfo instanceInfo = leaseToRenew.getHolder();</span><br><span class="line">        <span class="keyword">if</span> (instanceInfo != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// touchASGCache(instanceInfo.getASGName());</span></span><br><span class="line">            InstanceStatus overriddenInstanceStatus = <span class="keyword">this</span>.getOverriddenInstanceStatus(</span><br><span class="line">                    instanceInfo, leaseToRenew, isReplication);</span><br><span class="line">            <span class="keyword">if</span> (overriddenInstanceStatus == InstanceStatus.UNKNOWN) &#123;</span><br><span class="line">                logger.info(<span class="string">"Instance status UNKNOWN possibly due to deleted override for instance &#123;&#125;"</span></span><br><span class="line">                        + <span class="string">"; re-register required"</span>, instanceInfo.getId());</span><br><span class="line">                RENEW_NOT_FOUND.increment(isReplication);</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (!instanceInfo.getStatus().equals(overriddenInstanceStatus)) &#123;</span><br><span class="line">                Object[] args = &#123;</span><br><span class="line">                        instanceInfo.getStatus().name(),</span><br><span class="line">                        instanceInfo.getOverriddenStatus().name(),</span><br><span class="line">                        instanceInfo.getId()</span><br><span class="line">                &#125;;</span><br><span class="line">                logger.info(</span><br><span class="line">                        <span class="string">"The instance status &#123;&#125; is different from overridden instance status &#123;&#125; for instance &#123;&#125;. "</span></span><br><span class="line">                                + <span class="string">"Hence setting the status to overridden status"</span>, args);</span><br><span class="line">                instanceInfo.setStatusWithoutDirty(overriddenInstanceStatus);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        renewsLastMin.increment();</span><br><span class="line">        leaseToRenew.renew();</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里主要看<code>renew</code>方法， 这里看到<code>registry</code> 是一个注册表，通过appName获取对应的服务注册表信息。</p>
+<p>这里主要还是看<code>leaseToRenew.renew()</code> 其实很简单，就是设置当前示例注册表的renew属性的<code>lastUpdateTimestamp</code> 为最新时间+duration。</p>
+<p>至于这里的duration 我们下一讲会详细讲解，duration 和服务实例摘除有关。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>（1）DiscoveryClient初始化的时候，会去调度一堆定时任务，其中有一个就是HeartbeatThread，心跳线程</p>
+<p>（2）在这里可以看到，默认是每隔30秒去发送一次心跳，每隔30秒执行一次HeartbeatTHread线程的逻辑，发送心跳</p>
+<p>（3）这边的话就是去发送这个心跳，走的是EurekaHttpClient的sendHeartbeat()方法，<a href="http://localhost:8080/v2/apps/ServiceA/i-000000-1，走的是put请求" target="_blank" rel="noopener">http://localhost:8080/v2/apps/ServiceA/i-000000-1，走的是put请求</a></p>
+<p>（4）负责承接服务实例的心跳相关的这些操作的，是ApplicationsResource，服务相关的controller。找到ApplicationResource，再次找到InstanceResource，通过PUT请求，可以找到renewLease方法。</p>
+<p>（5）通过注册表的renew()方法，进去完成服务续约，实际进入AbstractInstanceRegistry的renew()方法</p>
+<p>（6）从注册表的map中，根据服务名和实例id，获取一个Lease，实际的服务续约的逻辑，其实就是在Lease对象中，更新一下lastUpdateTimestamp这个时间戳，每次续约，就更新一下这个时间戳就ok了。</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2019\12\31\[Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取]\" rel="bookmark">Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\09\[Nexflix Eureka 源码七：EurekaClient注册表抓取 精妙设计分析！]\" rel="bookmark">Nexflix Eureka 源码七：EurekaClient注册表抓取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\03\[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]\" rel="bookmark">Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\10\[Nexflix Eureka 源码九：服务下线及实例摘除，一个client下线到底多久才会被其他实例感知？]\" rel="bookmark">Nexflix Eureka 源码九：服务下线及实例摘除</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\02\[Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建]\" rel="bookmark">Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nexflix-Eureka/" rel="tag"># Nexflix Eureka</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2020/01/09/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B8%83%EF%BC%9AEurekaClient%E6%B3%A8%E5%86%8C%E8%A1%A8%E6%8A%93%E5%8F%96%20%E7%B2%BE%E5%A6%99%E8%AE%BE%E8%AE%A1%E5%88%86%E6%9E%90%EF%BC%81%5D/" rel="next" title="Nexflix Eureka 源码七：EurekaClient注册表抓取">
+                  <i class="fa fa-chevron-left"></i> Nexflix Eureka 源码七：EurekaClient注册表抓取
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2020/01/10/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B9%9D%EF%BC%9A%E6%9C%8D%E5%8A%A1%E4%B8%8B%E7%BA%BF%E5%8F%8A%E5%AE%9E%E4%BE%8B%E6%91%98%E9%99%A4%EF%BC%8C%E4%B8%80%E4%B8%AAclient%E4%B8%8B%E7%BA%BF%E5%88%B0%E5%BA%95%E5%A4%9A%E4%B9%85%E6%89%8D%E4%BC%9A%E8%A2%AB%E5%85%B6%E4%BB%96%E5%AE%9E%E4%BE%8B%E6%84%9F%E7%9F%A5%EF%BC%9F%5D/" rel="prev" title="Nexflix Eureka 源码九：服务下线及实例摘除">
+                  Nexflix Eureka 源码九：服务下线及实例摘除 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Nexflix-Eureka-源码八：服务续约源码分析"><span class="nav-number">1.</span> <span class="nav-text">[Nexflix Eureka 源码八：服务续约源码分析]</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.0.1.</span> <span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#前情回顾"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">前情回顾</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#本讲目录"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">本讲目录</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#源码分析"><span class="nav-number">1.0.2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#client端心跳检查调度任务"><span class="nav-number">1.0.2.1.</span> <span class="nav-text">client端心跳检查调度任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#server端接收心跳检查请求"><span class="nav-number">1.0.2.2.</span> <span class="nav-text">server端接收心跳检查请求</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.0.3.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="沈小布"
+      src="/images/head.gif">
+  <p class="site-author-name" itemprop="name">沈小布</p>
+  <div class="site-description" itemprop="description">种一棵树最好的时间是十年前 其次是现在</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/yourname" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:yourname@gmail.com" title="E-Mail → mailto:yourname@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/yourname" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/yourname" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-google"></i>Google</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">沈小布</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">201k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:03</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+
+  <script>
+      var now = new Date(); 
+      function createtime() { 
+          var grt= new Date("03/12/2019 12:00:00");//此处修改你的建站时间或者网站上线时间 
+          now.setTime(now.getTime()+250); 
+          days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+          hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+          if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+          mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+          seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+          snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+          document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 "; 
+          document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+      } 
+  setInterval("createtime()",250);
+  </script>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="业精于勤荒于嬉" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="[Ribbon 源码二：通过Debug找出Ribbon初始化流程及ILoadBalancer原理分析]前情回顾上一讲讲了Ribbon的基础知识，通过一个简单的demo看了下Ribbon的负载均衡，我们在RestTemplate上加了@LoadBalanced注解后，就能够自动的负载均衡了。">
+<meta name="keywords" content="Ribbon">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ribbon 源码二：Ribbon初始化流程及ILoadBalancer">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;01&#x2F;16&#x2F;[Ribbon%20%E6%BA%90%E7%A0%81%E4%BA%8C%EF%BC%9A%E9%80%9A%E8%BF%87Debug%E6%89%BE%E5%87%BARibbon%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B5%81%E7%A8%8B%E5%8F%8AILoadBalancer%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90]&#x2F;index.html">
+<meta property="og:site_name" content="业精于勤荒于嬉">
+<meta property="og:description" content="[Ribbon 源码二：通过Debug找出Ribbon初始化流程及ILoadBalancer原理分析]前情回顾上一讲讲了Ribbon的基础知识，通过一个简单的demo看了下Ribbon的负载均衡，我们在RestTemplate上加了@LoadBalanced注解后，就能够自动的负载均衡了。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200106100452510-906620037.jpg">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200106100453720-879797546.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200106100452510-906620037.jpg">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200106100455787-963069050.jpg">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200106100456442-1721326471.jpg">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200106100457063-580433286.png">
+<meta property="og:updated_time" content="2020-03-01T15:16:15.802Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;202001&#x2F;799093-20200106100452510-906620037.jpg">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/16/[Ribbon%20%E6%BA%90%E7%A0%81%E4%BA%8C%EF%BC%9A%E9%80%9A%E8%BF%87Debug%E6%89%BE%E5%87%BARibbon%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B5%81%E7%A8%8B%E5%8F%8AILoadBalancer%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90]/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Ribbon 源码二：Ribbon初始化流程及ILoadBalancer | 业精于勤荒于嬉</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">业精于勤荒于嬉</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">行成于思毁于随</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-fw fa-heartbeat"></i>公益 404</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/16/%5BRibbon%20%E6%BA%90%E7%A0%81%E4%BA%8C%EF%BC%9A%E9%80%9A%E8%BF%87Debug%E6%89%BE%E5%87%BARibbon%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B5%81%E7%A8%8B%E5%8F%8AILoadBalancer%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%5D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.gif">
+      <meta itemprop="name" content="沈小布">
+      <meta itemprop="description" content="种一棵树最好的时间是十年前 其次是现在">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="业精于勤荒于嬉">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Ribbon 源码二：Ribbon初始化流程及ILoadBalancer
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-16 22:05:37" itemprop="dateCreated datePublished" datetime="2020-01-16T22:05:37+08:00">2020-01-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-01 23:16:15" itemprop="dateModified" datetime="2020-03-01T23:16:15+08:00">2020-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%BA%90%E7%A0%81/" itemprop="url" rel="index">
+                    <span itemprop="name">源码</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Ribbon-源码二：通过Debug找出Ribbon初始化流程及ILoadBalancer原理分析"><a href="#Ribbon-源码二：通过Debug找出Ribbon初始化流程及ILoadBalancer原理分析" class="headerlink" title="[Ribbon 源码二：通过Debug找出Ribbon初始化流程及ILoadBalancer原理分析]"></a>[Ribbon 源码二：通过Debug找出Ribbon初始化流程及ILoadBalancer原理分析]</h1><h4 id="前情回顾"><a href="#前情回顾" class="headerlink" title="前情回顾"></a>前情回顾</h4><p>上一讲讲了Ribbon的基础知识，通过一个简单的demo看了下Ribbon的负载均衡，我们在RestTemplate上加了@LoadBalanced注解后，就能够自动的负载均衡了。</p>
+<a id="more"></a>
+
+<h4 id="本讲目录"><a href="#本讲目录" class="headerlink" title="本讲目录"></a>本讲目录</h4><p>这一讲主要是继续深入<code>RibbonLoadBalancerClient</code>和Ribbon+Eureka整合的方式。</p>
+<p>上文我们已经知道调用<code>RestTemplate</code>时，会在其上面加上一个<code>LoadBalancerInterceptor</code>拦截器，其中会先执行<code>LoadBalancerClient.execute()</code>方法。</p>
+<p>这里我们会有一个疑问，默认的<code>LoadBalancerInterceptor</code>和<code>LoadBalancerClient</code>都是什么呢？他们分别在哪里进行初始化的呢？</p>
+<p>带着这些疑问我们来往前递推下Ribbon初始化过程，相信看完下面的分析后，这些问题也就迎刃而解了。</p>
+<p><strong>目录如下：</strong></p>
+<ol>
+<li>从XXXAutoConfig来追溯Ribbon初始化过程</li>
+<li>ZoneAwareLoadBalancer原理分析</li>
+</ol>
+<h4 id="从XXXAutoConfig来追溯Ribbon初始化过程"><a href="#从XXXAutoConfig来追溯Ribbon初始化过程" class="headerlink" title="从XXXAutoConfig来追溯Ribbon初始化过程"></a>从XXXAutoConfig来追溯Ribbon初始化过程</h4><p>在第一篇文章我们已经分析了，和<code>LoadBalanced</code>类同目录下有一个<code>LoadBalancerAutoConfiguration</code>类，这个是我们最先找到的<strong>负载均衡</strong>自动配置类。</p>
+<h5 id="LoadBalancerAutoConfiguration作用"><a href="#LoadBalancerAutoConfiguration作用" class="headerlink" title="LoadBalancerAutoConfiguration作用"></a>LoadBalancerAutoConfiguration作用</h5><p>这个配置类主要是为调用的<code>RestTemplate</code>调用时添加<code>LoadBalancerInterceptor</code>过滤器，里面还有其他一些重试的配置，这个后面再看。</p>
+<p>查看此类的依赖，可以追踪到：<code>RibbonAutoConfiguration</code>, 如图所示：</p>
+<p><a href="https://pic.downk.cc/item/5e0f0cfe76085c32898dd24a.jpg" target="_blank" rel="noopener"><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200106100452510-906620037.jpg" alt="img"></a></p>
+<h5 id="RibbonAutoConfiguration作用"><a href="#RibbonAutoConfiguration作用" class="headerlink" title="RibbonAutoConfiguration作用"></a>RibbonAutoConfiguration作用</h5><ol>
+<li>初始化SpringClientFactory</li>
+<li>初始化LoadBalancerClient: RibbonLoadBalancerClient</li>
+</ol>
+<p>其中在<code>SpringClientFactory</code>构造函数中有如下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public class SpringClientFactory extends NamedContextFactory&lt;RibbonClientSpecification&gt; &#123;</span><br><span class="line"></span><br><span class="line">    public SpringClientFactory() &#123;</span><br><span class="line">        super(RibbonClientConfiguration.class, NAMESPACE, &quot;ribbon.client.name&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看到这里实际上会初始化<code>RibbonClientConfiguration</code>配置类，接着往下看。</p>
+<h5 id="RibbonClientConfiguration作用"><a href="#RibbonClientConfiguration作用" class="headerlink" title="RibbonClientConfiguration作用"></a>RibbonClientConfiguration作用</h5><ol>
+<li>初始化ribbonRule: <strong>ZoneAvoidanceRule</strong></li>
+<li>初始化ribbonPing：<strong>DummyPing</strong></li>
+<li>初始化ribbonServerList：<strong>ConfigurationBasedServerList</strong></li>
+<li>初始化ServerListUpdater：<strong>new PollingServerListUpdater(config)</strong></li>
+<li>初始化ILoadBalancer：<strong>ZoneAwareLoadBalancer</strong></li>
+<li>初始化ribbonServerListFilter：<strong>ZonePreferenceServerListFilter</strong></li>
+<li>初始化ribbonLoadBalancerContext：<strong>RibbonLoadBalancerContext</strong></li>
+<li>初始化serverIntrospector：<strong>DefaultServerIntrospector</strong></li>
+</ol>
+<p>最后总结为下面一张图所示：</p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200106100453720-879797546.png" alt="22.png"></p>
+<h4 id="ZoneAwareLoadBalancer原理分析"><a href="#ZoneAwareLoadBalancer原理分析" class="headerlink" title="ZoneAwareLoadBalancer原理分析"></a>ZoneAwareLoadBalancer原理分析</h4><p>我们上面已经知道了Ribbon的大致流程，这里我们可以看到默认的<code>ILoadBalancer</code> 为<code>ZoneAwareLoadBalancer</code>，还是回到之前<code>RibbonLoadBalancerClient.execute()</code> 方法中去，看下这里方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public &lt;T&gt; T execute(String serviceId, LoadBalancerRequest&lt;T&gt; request) throws IOException &#123;</span><br><span class="line">    ILoadBalancer loadBalancer = getLoadBalancer(serviceId);</span><br><span class="line">    Server server = getServer(loadBalancer);</span><br><span class="line">    if (server == null) &#123;</span><br><span class="line">        throw new IllegalStateException(&quot;No instances available for &quot; + serviceId);</span><br><span class="line">    &#125;</span><br><span class="line">    RibbonServer ribbonServer = new RibbonServer(serviceId, server, isSecure(server,</span><br><span class="line">            serviceId), serverIntrospector(serviceId).getMetadata(server));</span><br><span class="line"></span><br><span class="line">    return execute(serviceId, ribbonServer, request);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里第一行代码会获取一个<code>ILoadBalancer</code> 我们其实已经知道了，这里默认的<code>ILoadBalancer</code> 为<code>ZoneAwareLoadBalancer</code>。</p>
+<p>我们接着看下 <code>RibbonLoadBalancerClient</code> 中的<code>getLoadBalancer()</code> 方法具体是怎么获取这个默认的LoadBalancer的。</p>
+<p>这里面使用的是<code>SpringClientFactory.getLoadBalancer()</code> 方法，然后一直往里面跟, 最后调用到 <code>NameContextFactory.java</code> 中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">public abstract class NamedContextFactory&lt;C extends NamedContextFactory.Specification&gt;</span><br><span class="line">        implements DisposableBean, ApplicationContextAware &#123;</span><br><span class="line"></span><br><span class="line">    private Map&lt;String, AnnotationConfigApplicationContext&gt; contexts = new ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    public &lt;T&gt; T getInstance(String name, Class&lt;T&gt; type) &#123;</span><br><span class="line">        AnnotationConfigApplicationContext context = getContext(name);</span><br><span class="line">        if (BeanFactoryUtils.beanNamesForTypeIncludingAncestors(context,</span><br><span class="line">                type).length &gt; 0) &#123;</span><br><span class="line">            return context.getBean(type);</span><br><span class="line">        &#125;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    protected AnnotationConfigApplicationContext getContext(String name) &#123;</span><br><span class="line">        if (!this.contexts.containsKey(name)) &#123;</span><br><span class="line">            synchronized (this.contexts) &#123;</span><br><span class="line">                if (!this.contexts.containsKey(name)) &#123;</span><br><span class="line">                    this.contexts.put(name, createContext(name));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return this.contexts.get(name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对每个服务名称，你要调用的每个服务，对应的服务名称，都有一个对应的spring的ApplicationContext容器，ServiceA对应着一个自己的独立的spring的ApplicationContext容器</p>
+<p>比如说要获取这个ServiceA服务的LoadBalancer，那么就从ServiceCA服务对应的自己的ApplicationContext容器中去获取自己的LoadBalancer即可</p>
+<p>如果是另外一个ServiceC服务，那么又是另外的一个spring APplicationContext，然后从里面获取到的LoadBalancer都是自己的容器里的LoadBalancer</p>
+<p>可以通过debug 查看到下图返回的LoadBanlancer信息。这里就不在多赘述。</p>
+<p><a href="https://pic.downk.cc/item/5e0f0cfe76085c32898dd24a.jpg" target="_blank" rel="noopener"><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200106100452510-906620037.jpg" alt="img"></a></p>
+<p><a href="https://pic.downk.cc/item/5e0f175976085c32898ecf2e.jpg" target="_blank" rel="noopener"><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200106100455787-963069050.jpg" alt="img"></a></p>
+<p>上面最后图片可以看到，实例化出来的instance是<code>ZoneAwareLoadBalancer</code> ， 这个类继承自<code>DynamicServerListLoadBalancer</code>，顺带看下类结构：</p>
+<p><a href="https://pic.downk.cc/item/5e0f1d9b76085c32898f5c27.jpg" target="_blank" rel="noopener"><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200106100456442-1721326471.jpg" alt="img"></a></p>
+<p>到了这里就算是分析完了，再深究<code>ZoneAwareLoadBalancer</code> 就到了和Eureka整合相关的了，这一部分放到下一讲继续讲解了。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>用一张图做最后的总结：</p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/202001/799093-20200106100457063-580433286.png" alt="img"></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\15\[Ribbon 源码一：Ribbon概念理解及Demo调试]\" rel="bookmark">Ribbon 源码一：Ribbon概念理解及Demo调试</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\19\[Ribbon 源码四：进一步探究Ribbon的IRule和IPing]\" rel="bookmark">Ribbon 源码四：进一步探究Ribbon的IRule和IPing</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\17\[Ribbon 源码三：Ribbon与Eureka整合原理分析]\" rel="bookmark">Ribbon 源码三：Ribbon与Eureka整合原理分析</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\20\[Ribbon源码五：Ribbon源码解读汇总篇~]\" rel="bookmark">Ribbon源码五：Ribbon源码解读汇总篇</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Ribbon/" rel="tag"># Ribbon</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2020/01/15/%5BRibbon%20%E6%BA%90%E7%A0%81%E4%B8%80%EF%BC%9ARibbon%E6%A6%82%E5%BF%B5%E7%90%86%E8%A7%A3%E5%8F%8ADemo%E8%B0%83%E8%AF%95%5D/" rel="next" title="Ribbon 源码一：Ribbon概念理解及Demo调试">
+                  <i class="fa fa-chevron-left"></i> Ribbon 源码一：Ribbon概念理解及Demo调试
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2020/01/17/%5BRibbon%20%E6%BA%90%E7%A0%81%E4%B8%89%EF%BC%9ARibbon%E4%B8%8EEureka%E6%95%B4%E5%90%88%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90%5D/" rel="prev" title="Ribbon 源码三：Ribbon与Eureka整合原理分析">
+                  Ribbon 源码三：Ribbon与Eureka整合原理分析 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Ribbon-源码二：通过Debug找出Ribbon初始化流程及ILoadBalancer原理分析"><span class="nav-number">1.</span> <span class="nav-text">[Ribbon 源码二：通过Debug找出Ribbon初始化流程及ILoadBalancer原理分析]</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#前情回顾"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">前情回顾</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#本讲目录"><span class="nav-number">1.0.0.2.</span> <span class="nav-text">本讲目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#从XXXAutoConfig来追溯Ribbon初始化过程"><span class="nav-number">1.0.0.3.</span> <span class="nav-text">从XXXAutoConfig来追溯Ribbon初始化过程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#LoadBalancerAutoConfiguration作用"><span class="nav-number">1.0.0.3.1.</span> <span class="nav-text">LoadBalancerAutoConfiguration作用</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#RibbonAutoConfiguration作用"><span class="nav-number">1.0.0.3.2.</span> <span class="nav-text">RibbonAutoConfiguration作用</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#RibbonClientConfiguration作用"><span class="nav-number">1.0.0.3.3.</span> <span class="nav-text">RibbonClientConfiguration作用</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ZoneAwareLoadBalancer原理分析"><span class="nav-number">1.0.0.4.</span> <span class="nav-text">ZoneAwareLoadBalancer原理分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.0.1.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="沈小布"
+      src="/images/head.gif">
+  <p class="site-author-name" itemprop="name">沈小布</p>
+  <div class="site-description" itemprop="description">种一棵树最好的时间是十年前 其次是现在</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/yourname" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:yourname@gmail.com" title="E-Mail → mailto:yourname@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/yourname" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/yourname" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-google"></i>Google</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">沈小布</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">201k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:03</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+
+  <script>
+      var now = new Date(); 
+      function createtime() { 
+          var grt= new Date("03/12/2019 12:00:00");//此处修改你的建站时间或者网站上线时间 
+          now.setTime(now.getTime()+250); 
+          days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+          hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+          if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+          mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+          seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+          snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+          document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 "; 
+          document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+      } 
+  setInterval("createtime()",250);
+  </script>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="业精于勤荒于嬉" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="[Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？]前言在源码分析三、四都有提及到EurekaClient启动的一些过程。因为EurekaServer在集群模式下 自己本身就是一个client，所以之前初始化eurekaServerContext就有涉及到eurekaClient的初始化。 我们也看了EurekaClient（DiscoveryClient）初">
+<meta name="keywords" content="Nexflix Eureka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;01&#x2F;04&#x2F;[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%9B%9B%EF%BC%9AEurekaClient%E5%90%AF%E5%8A%A8%E8%A6%81%E7%BB%8F%E5%8E%86%E5%93%AA%E4%BA%9B%E8%89%B0%E9%9A%BE%E9%99%A9%E9%98%BB%EF%BC%9F]&#x2F;index.html">
+<meta property="og:site_name" content="业精于勤荒于嬉">
+<meta property="og:description" content="[Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？]前言在源码分析三、四都有提及到EurekaClient启动的一些过程。因为EurekaServer在集群模式下 自己本身就是一个client，所以之前初始化eurekaServerContext就有涉及到eurekaClient的初始化。 我们也看了EurekaClient（DiscoveryClient）初">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191227111631564-1145037618.png">
+<meta property="og:updated_time" content="2020-03-01T15:11:12.197Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191227111631564-1145037618.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/04/[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%9B%9B%EF%BC%9AEurekaClient%E5%90%AF%E5%8A%A8%E8%A6%81%E7%BB%8F%E5%8E%86%E5%93%AA%E4%BA%9B%E8%89%B0%E9%9A%BE%E9%99%A9%E9%98%BB%EF%BC%9F]/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？ | 业精于勤荒于嬉</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">业精于勤荒于嬉</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">行成于思毁于随</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-fw fa-heartbeat"></i>公益 404</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/04/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%9B%9B%EF%BC%9AEurekaClient%E5%90%AF%E5%8A%A8%E8%A6%81%E7%BB%8F%E5%8E%86%E5%93%AA%E4%BA%9B%E8%89%B0%E9%9A%BE%E9%99%A9%E9%98%BB%EF%BC%9F%5D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.gif">
+      <meta itemprop="name" content="沈小布">
+      <meta itemprop="description" content="种一棵树最好的时间是十年前 其次是现在">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="业精于勤荒于嬉">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-04 22:05:37" itemprop="dateCreated datePublished" datetime="2020-01-04T22:05:37+08:00">2020-01-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-01 23:11:12" itemprop="dateModified" datetime="2020-03-01T23:11:12+08:00">2020-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%BA%90%E7%A0%81/" itemprop="url" rel="index">
+                    <span itemprop="name">源码</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Nexflix-Eureka-源码四：EurekaClient启动要经历哪些艰难险阻？"><a href="#Nexflix-Eureka-源码四：EurekaClient启动要经历哪些艰难险阻？" class="headerlink" title="[Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？]"></a>[Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？]</h1><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在源码分析三、四都有提及到EurekaClient启动的一些过程。因为EurekaServer在集群模式下 自己本身就是一个client，所以之前初始化eurekaServerContext就有涉及到eurekaClient的初始化。</p>
+<p>我们也看了EurekaClient（DiscoveryClient）初始化的过程，繁杂的启动过程让人眼花缭乱，这篇文章就专门来唠唠 里面经历的一些艰难险阻。这也会是后面client注册的一个前置文章。</p>
+<a id="more"></a>
+
+<h3 id="从ExampleEurekaClient开始说起"><a href="#从ExampleEurekaClient开始说起" class="headerlink" title="从ExampleEurekaClient开始说起"></a>从ExampleEurekaClient开始说起</h3><p>在第一讲我们就说过，eureka项目有一个examples模块的，现在看一下其中的EurekaClientExample对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExampleEurekaClient</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> ApplicationInfoManager applicationInfoManager;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> EurekaClient eurekaClient;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> ApplicationInfoManager <span class="title">initializeApplicationInfoManager</span><span class="params">(EurekaInstanceConfig instanceConfig)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (applicationInfoManager == <span class="keyword">null</span>) &#123;</span><br><span class="line">            InstanceInfo instanceInfo = <span class="keyword">new</span> EurekaConfigBasedInstanceInfoProvider(instanceConfig).get();</span><br><span class="line">            applicationInfoManager = <span class="keyword">new</span> ApplicationInfoManager(instanceConfig, instanceInfo);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> applicationInfoManager;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> EurekaClient <span class="title">initializeEurekaClient</span><span class="params">(ApplicationInfoManager applicationInfoManager, EurekaClientConfig clientConfig)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (eurekaClient == <span class="keyword">null</span>) &#123;</span><br><span class="line">            eurekaClient = <span class="keyword">new</span> DiscoveryClient(applicationInfoManager, clientConfig);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> eurekaClient;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">sendRequestToServiceUsingEureka</span><span class="params">(EurekaClient eurekaClient)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// initialize the client</span></span><br><span class="line">        <span class="comment">// this is the vip address for the example service to talk to as defined in conf/sample-eureka-service.properties</span></span><br><span class="line">        String vipAddress = <span class="string">"sampleservice.mydomain.net"</span>;</span><br><span class="line"></span><br><span class="line">        InstanceInfo nextServerInfo = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            nextServerInfo = eurekaClient.getNextServerFromEureka(vipAddress, <span class="keyword">false</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.err.println(<span class="string">"Cannot get an instance of example service to talk to from eureka"</span>);</span><br><span class="line">            System.exit(-<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"Found an instance of example service to talk to from eureka: "</span></span><br><span class="line">                + nextServerInfo.getVIPAddress() + <span class="string">":"</span> + nextServerInfo.getPort());</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="string">"healthCheckUrl: "</span> + nextServerInfo.getHealthCheckUrl());</span><br><span class="line">        System.out.println(<span class="string">"override: "</span> + nextServerInfo.getOverriddenStatus());</span><br><span class="line"></span><br><span class="line">        Socket s = <span class="keyword">new</span> Socket();</span><br><span class="line">        <span class="keyword">int</span> serverPort = nextServerInfo.getPort();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            s.connect(<span class="keyword">new</span> InetSocketAddress(nextServerInfo.getHostName(), serverPort));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            System.err.println(<span class="string">"Could not connect to the server :"</span></span><br><span class="line">                    + nextServerInfo.getHostName() + <span class="string">" at port "</span> + serverPort);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            System.err.println(<span class="string">"Could not connect to the server :"</span></span><br><span class="line">                    + nextServerInfo.getHostName() + <span class="string">" at port "</span> + serverPort + <span class="string">"due to Exception "</span> + e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String request = <span class="string">"FOO "</span> + <span class="keyword">new</span> Date();</span><br><span class="line">            System.out.println(<span class="string">"Connected to server. Sending a sample request: "</span> + request);</span><br><span class="line"></span><br><span class="line">            PrintStream out = <span class="keyword">new</span> PrintStream(s.getOutputStream());</span><br><span class="line">            out.println(request);</span><br><span class="line"></span><br><span class="line">            System.out.println(<span class="string">"Waiting for server response.."</span>);</span><br><span class="line">            BufferedReader rd = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(s.getInputStream()));</span><br><span class="line">            String str = rd.readLine();</span><br><span class="line">            <span class="keyword">if</span> (str != <span class="keyword">null</span>) &#123;</span><br><span class="line">                System.out.println(<span class="string">"Received response from server: "</span> + str);</span><br><span class="line">                System.out.println(<span class="string">"Exiting the client. Demo over.."</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            rd.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        injectEurekaConfiguration();</span><br><span class="line">        ExampleEurekaClient sampleClient = <span class="keyword">new</span> ExampleEurekaClient();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// MyDataCenterInstanceConfig 就是加载eureka-client.properties配置信息,形成一个服务实例的配置EurekaInstanceConfig</span></span><br><span class="line">        <span class="comment">// 基于EurekaClient配置，构造了一个服务实例（InstanceInfo）</span></span><br><span class="line">        <span class="comment">// 基于eureka client配置和服务实例，构造了一个服务实例管理器（ApplicationInfoManager）</span></span><br><span class="line">        <span class="comment">// 读取eureka-client.properties配置文件，形成了一个eureka client的配置，接口对外提供eureka client的配置项的读取</span></span><br><span class="line">        <span class="comment">// 基于eureka client的配置，和服务实例管理器，来构造了一个EurekaClient（DiscoveryClient</span></span><br><span class="line">        <span class="comment">// ），保存了一些配置，处理服务的注册和注册表的抓取，启动了几个线程池，启动了网络通信组件，启动了一些调度任务，注册了监控项</span></span><br><span class="line">        ApplicationInfoManager applicationInfoManager = initializeApplicationInfoManager(<span class="keyword">new</span> MyDataCenterInstanceConfig());</span><br><span class="line">        EurekaClient client = initializeEurekaClient(applicationInfoManager, <span class="keyword">new</span> DefaultEurekaClientConfig());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// use the client</span></span><br><span class="line">        sampleClient.sendRequestToServiceUsingEureka(client);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">// shutdown the client</span></span><br><span class="line">        eurekaClient.shutdown();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * This will be read by server internal discovery client. We need to salience it.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">injectEurekaConfiguration</span><span class="params">()</span> <span class="keyword">throws</span> UnknownHostException </span>&#123;</span><br><span class="line">        String myHostName = InetAddress.getLocalHost().getHostName();</span><br><span class="line">        String myServiceUrl = <span class="string">"http://"</span> + myHostName + <span class="string">":8080/v2/"</span>;</span><br><span class="line"></span><br><span class="line">        System.setProperty(<span class="string">"eureka.region"</span>, <span class="string">"default"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.name"</span>, <span class="string">"eureka"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.vipAddress"</span>, <span class="string">"eureka.mydomain.net"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.port"</span>, <span class="string">"8080"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.preferSameZone"</span>, <span class="string">"false"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.shouldUseDns"</span>, <span class="string">"false"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.shouldFetchRegistry"</span>, <span class="string">"true"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.serviceUrl.defaultZone"</span>, myServiceUrl);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.serviceUrl.default.defaultZone"</span>, myServiceUrl);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.awsAccessId"</span>, <span class="string">"fake_aws_access_id"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.awsSecretKey"</span>, <span class="string">"fake_aws_secret_key"</span>);</span><br><span class="line">        System.setProperty(<span class="string">"eureka.numberRegistrySyncRetries"</span>, <span class="string">"0"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里我们从main函数开始看起：</p>
+<ol>
+<li>注入eureka配置信息：<code>injectEurekaConfiguration();</code></li>
+<li>读取eureka-client.properties配置文件，形成一个服务器实例的配置，基于接口对外提供实例的配置项读取<br> 这里就是涉及到我么你之前讲解的<code>DynamicPropertyFactory</code>和<code>ConfigurationManager</code>,这里可以查看<code>new MyDataCenterInstanceConfig()</code>然后一步步往后跟。</li>
+<li>基于服务实例的配置，构造了一个服务实例（InstanceInfo）。<code>initializeApplicationInfoManager</code>中会构建InstanceInfo信息</li>
+<li>基于服务实例的配置和服务实例，初始化服务实例管理器（ApplicationInfoManager）</li>
+<li>基于eureka client配置，和服务实例管理器，来构造了一个EurekaClient（DiscoveryClient），保存了一些配置，处理服务的注册和注册表的抓取，启动了几个线程池，启动了网络通信组件，启动了一些调度任务，注册了监控项<br> 具体可查看 <code>EurekaClient client = initializeEurekaClient(applicationInfoManager, new DefaultEurekaClientConfig());</code></li>
+</ol>
+<h3 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h3><p><img src="https://img2018.cnblogs.com/blog/799093/201912/799093-20191227111631564-1145037618.png" alt="02_Eureka_Client启动流程图.png"></p>
+<h3 id="申明"><a href="#申明" class="headerlink" title="申明"></a>申明</h3>
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2019\12\31\[Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取]\" rel="bookmark">Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\09\[Nexflix Eureka 源码七：EurekaClient注册表抓取 精妙设计分析！]\" rel="bookmark">Nexflix Eureka 源码七：EurekaClient注册表抓取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\03\[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]\" rel="bookmark">Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\10\[Nexflix Eureka 源码九：服务下线及实例摘除，一个client下线到底多久才会被其他实例感知？]\" rel="bookmark">Nexflix Eureka 源码九：服务下线及实例摘除</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\02\[Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建]\" rel="bookmark">Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nexflix-Eureka/" rel="tag"># Nexflix Eureka</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2020/01/03/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B8%89%EF%BC%9AEurekaServer%E5%90%AF%E5%8A%A8%E4%B9%8B%E5%AE%8C%E6%88%90%E4%B8%8A%E4%B8%8B%E6%96%87%E6%9E%84%E5%BB%BA%E5%8F%8AEurekaServer%E6%80%BB%E7%BB%93%5D/" rel="next" title="Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结">
+                  <i class="fa fa-chevron-left"></i> Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2020/01/05/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%BA%94%EF%BC%9A%E5%9C%A8%E7%9C%BC%E8%8A%B1%E7%BC%AD%E4%B9%B1%E7%9A%84%E4%BB%A3%E7%A0%81%E4%B8%AD%EF%BC%8CEurekaClient%E6%98%AF%E5%A6%82%E4%BD%95%E6%B3%A8%E5%86%8C%E7%9A%84%EF%BC%9F%5D/" rel="prev" title="Nexflix Eureka 源码五：在眼花缭乱的代码中，EurekaClient是如何注册的？">
+                  Nexflix Eureka 源码五：在眼花缭乱的代码中，EurekaClient是如何注册的？ <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Nexflix-Eureka-源码四：EurekaClient启动要经历哪些艰难险阻？"><span class="nav-number">1.</span> <span class="nav-text">[Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？]</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.0.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从ExampleEurekaClient开始说起"><span class="nav-number">1.0.2.</span> <span class="nav-text">从ExampleEurekaClient开始说起</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流程图"><span class="nav-number">1.0.3.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#申明"><span class="nav-number">1.0.4.</span> <span class="nav-text">申明</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="沈小布"
+      src="/images/head.gif">
+  <p class="site-author-name" itemprop="name">沈小布</p>
+  <div class="site-description" itemprop="description">种一棵树最好的时间是十年前 其次是现在</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/yourname" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:yourname@gmail.com" title="E-Mail → mailto:yourname@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/yourname" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/yourname" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-google"></i>Google</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">沈小布</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">201k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:03</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+
+  <script>
+      var now = new Date(); 
+      function createtime() { 
+          var grt= new Date("03/12/2019 12:00:00");//此处修改你的建站时间或者网站上线时间 
+          now.setTime(now.getTime()+250); 
+          days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+          hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+          if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+          mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+          seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+          snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+          document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 "; 
+          document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+      } 
+  setInterval("createtime()",250);
+  </script>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

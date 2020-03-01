@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="alternate" href="/atom.xml" title="业精于勤荒于嬉" type="application/atom+xml">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]前言上篇文章已经介绍了 Eureka Server上下文创建相关的Eureka Client逻辑，这一部分还是比较复杂的。接下来就讲解下Eureka Server上下文初始化最后的部分，然后加上整个Eureka Server启动的总结。">
+<meta name="keywords" content="Nexflix Eureka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2020&#x2F;01&#x2F;03&#x2F;[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B8%89%EF%BC%9AEurekaServer%E5%90%AF%E5%8A%A8%E4%B9%8B%E5%AE%8C%E6%88%90%E4%B8%8A%E4%B8%8B%E6%96%87%E6%9E%84%E5%BB%BA%E5%8F%8AEurekaServer%E6%80%BB%E7%BB%93]&#x2F;index.html">
+<meta property="og:site_name" content="业精于勤荒于嬉">
+<meta property="og:description" content="[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]前言上篇文章已经介绍了 Eureka Server上下文创建相关的Eureka Client逻辑，这一部分还是比较复杂的。接下来就讲解下Eureka Server上下文初始化最后的部分，然后加上整个Eureka Server启动的总结。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191226100224554-852172976.png">
+<meta property="og:updated_time" content="2020-03-01T15:11:00.529Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;img2018.cnblogs.com&#x2F;blog&#x2F;799093&#x2F;201912&#x2F;799093-20191226100224554-852172976.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/01/03/[Nexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B8%89%EF%BC%9AEurekaServer%E5%90%AF%E5%8A%A8%E4%B9%8B%E5%AE%8C%E6%88%90%E4%B8%8A%E4%B8%8B%E6%96%87%E6%9E%84%E5%BB%BA%E5%8F%8AEurekaServer%E6%80%BB%E7%BB%93]/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结 | 业精于勤荒于嬉</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">业精于勤荒于嬉</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">行成于思毁于随</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-fw fa-heartbeat"></i>公益 404</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/03/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%B8%89%EF%BC%9AEurekaServer%E5%90%AF%E5%8A%A8%E4%B9%8B%E5%AE%8C%E6%88%90%E4%B8%8A%E4%B8%8B%E6%96%87%E6%9E%84%E5%BB%BA%E5%8F%8AEurekaServer%E6%80%BB%E7%BB%93%5D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/head.gif">
+      <meta itemprop="name" content="沈小布">
+      <meta itemprop="description" content="种一棵树最好的时间是十年前 其次是现在">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="业精于勤荒于嬉">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-03 22:05:37" itemprop="dateCreated datePublished" datetime="2020-01-03T22:05:37+08:00">2020-01-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-03-01 23:11:00" itemprop="dateModified" datetime="2020-03-01T23:11:00+08:00">2020-03-01</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%BA%90%E7%A0%81/" itemprop="url" rel="index">
+                    <span itemprop="name">源码</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Nexflix-Eureka-源码三：EurekaServer启动之完成上下文构建及EurekaServer总结"><a href="#Nexflix-Eureka-源码三：EurekaServer启动之完成上下文构建及EurekaServer总结" class="headerlink" title="[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]"></a>[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]</h1><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上篇文章已经介绍了 Eureka Server上下文创建相关的Eureka Client逻辑，这一部分还是比较复杂的。接下来就讲解下Eureka Server上下文初始化最后的部分，然后加上整个Eureka Server启动的总结。</p>
+<a id="more"></a>
+
+<h3 id="initEurekaServerContext"><a href="#initEurekaServerContext" class="headerlink" title="initEurekaServerContext"></a>initEurekaServerContext</h3><p>EurekaBootStrap.initEurekaServerContext</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initEurekaServerContext</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="comment">// 省略之前内容</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3、处理注册相关的事情  下面是拆解单词加深理解：</span></span><br><span class="line">    <span class="comment">// PeerAware:可以识别eureka server集群的。多个同样的东西组成一个集群，peers：集群，peer就是集群中的一个实例</span></span><br><span class="line">    <span class="comment">// InstanceRegistry:实例注册，服务实例注册。注册表，这个里面放了所有的主车道这个eureka server上的服务实例，就是一个服务实例的注册表。</span></span><br><span class="line">    <span class="comment">// PeerAwareInstanceRegistry：可以感知eureka server集群的服务实例注册表，eureka client(作为服务实例)过来注册的注册表，而且这个注册表是可以感知到eureka</span></span><br><span class="line">    <span class="comment">// server集群的，假如有一个eureka server集群的话，这里包含了其他eureka server中的服务实例注册表信息的。</span></span><br><span class="line">    PeerAwareInstanceRegistry registry;</span><br><span class="line">    <span class="keyword">if</span> (isAws(applicationInfoManager.getInfo())) &#123;</span><br><span class="line">        registry = <span class="keyword">new</span> AwsInstanceRegistry(</span><br><span class="line">                eurekaServerConfig,</span><br><span class="line">                eurekaClient.getEurekaClientConfig(),</span><br><span class="line">                serverCodecs,</span><br><span class="line">                eurekaClient</span><br><span class="line">        );</span><br><span class="line">        awsBinder = <span class="keyword">new</span> AwsBinderDelegate(eurekaServerConfig, eurekaClient.getEurekaClientConfig(), registry, applicationInfoManager);</span><br><span class="line">        awsBinder.start();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 创建PeerAwareInstanceRegistry。最近取消的实例，最近注册的实例都会保存到registry中</span></span><br><span class="line">        registry = <span class="keyword">new</span> PeerAwareInstanceRegistryImpl(</span><br><span class="line">                eurekaServerConfig,</span><br><span class="line">                eurekaClient.getEurekaClientConfig(),</span><br><span class="line">                serverCodecs,</span><br><span class="line">                eurekaClient</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4、处理peer节点相关的事情</span></span><br><span class="line">    <span class="comment">// peerEurekaNodes 代表了eureka server集群，peers大概来说是多个相同的实例组成的一个集群，peer就是peers中的一个实例</span></span><br><span class="line">    <span class="comment">// PeerEurekaNodes，代表的是eureka server集群</span></span><br><span class="line">    PeerEurekaNodes peerEurekaNodes = getPeerEurekaNodes(</span><br><span class="line">            registry,</span><br><span class="line">            eurekaServerConfig,</span><br><span class="line">            eurekaClient.getEurekaClientConfig(),</span><br><span class="line">            serverCodecs,</span><br><span class="line">            applicationInfoManager</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5、完成eureka-server上下文(context)的构建及初始化</span></span><br><span class="line">    serverContext = <span class="keyword">new</span> DefaultEurekaServerContext(</span><br><span class="line">            eurekaServerConfig,</span><br><span class="line">            serverCodecs,</span><br><span class="line">            registry,</span><br><span class="line">            peerEurekaNodes,</span><br><span class="line">            applicationInfoManager</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将上下文信息放到holder中</span></span><br><span class="line">    EurekaServerContextHolder.initialize(serverContext);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将eureka server集群启动起来。里面会更新eureka server集群的信息，让当前的eureka server感知到所有的其他eureka server</span></span><br><span class="line">    <span class="comment">// 然后搞一个定时调度任务，就是一个后台线程，每隔一段时间，更新eureka server集群的信息</span></span><br><span class="line">    <span class="comment">// registry.init: 基于eureka server集群的信息，来初始化注册表，将eureka server集群中所有的eureka</span></span><br><span class="line">    <span class="comment">// server的注册表信息抓取过来，放到自己本地的注册表中。都是跟eureka server集群中之间的注册表信息互换有关联的</span></span><br><span class="line">    serverContext.initialize();</span><br><span class="line">    logger.info(<span class="string">"Initialized server context"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Copy registry from neighboring eureka node</span></span><br><span class="line">    <span class="comment">// 6、处理一些善后的事情，从相邻的eureka节点拷贝注册信息</span></span><br><span class="line">    <span class="comment">// registry.syncUp()： 从相邻的一个eureka server节点拷贝注册表信息，如果拷贝失败，就找下一个</span></span><br><span class="line">    <span class="keyword">int</span> registryCount = registry.syncUp();</span><br><span class="line">    registry.openForTraffic(applicationInfoManager, registryCount);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Register all monitoring statistics.</span></span><br><span class="line">    <span class="comment">// 7、注册所有的监控统计项</span></span><br><span class="line">    EurekaMonitors.registerAllStats();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里备注比较多，基本上是每个方法 实现的目的，并没有进一步跟踪细节问题，还是之前讲到的，看源码还是要抓大放小，我们尽量先把主流程搞清楚，然后再去一步步攻克细节。</p>
+<h3 id="EurekaServer启动流程总结"><a href="#EurekaServer启动流程总结" class="headerlink" title="EurekaServer启动流程总结"></a>EurekaServer启动流程总结</h3><p>到这里 eureka server启动的相关代码就看完了，下面有一张流程图来总结一下的：</p>
+<p><img src="https://img2018.cnblogs.com/blog/799093/201912/799093-20191226100224554-852172976.png" alt="01_EurekaServer启动流程图.png"></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2019\12\31\[Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取]\" rel="bookmark">Nexflix Eureka 源码一：EurekaServer启动之配置文件加载以及面向接口的配置项读取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\09\[Nexflix Eureka 源码七：EurekaClient注册表抓取 精妙设计分析！]\" rel="bookmark">Nexflix Eureka 源码七：EurekaClient注册表抓取</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\10\[Nexflix Eureka 源码九：服务下线及实例摘除，一个client下线到底多久才会被其他实例感知？]\" rel="bookmark">Nexflix Eureka 源码九：服务下线及实例摘除</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\02\[Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建]\" rel="bookmark">Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2020\01\05\[Nexflix Eureka 源码五：在眼花缭乱的代码中，EurekaClient是如何注册的？]\" rel="bookmark">Nexflix Eureka 源码五：在眼花缭乱的代码中，EurekaClient是如何注册的？</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Nexflix-Eureka/" rel="tag"># Nexflix Eureka</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2020/01/02/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E4%BA%8C%EF%BC%9AEurekaServer%E5%90%AF%E5%8A%A8%E4%B9%8BEurekaServer%E4%B8%8A%E4%B8%8B%E6%96%87EurekaClient%E5%88%9B%E5%BB%BA%5D/" rel="next" title="Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建">
+                  <i class="fa fa-chevron-left"></i> Nexflix Eureka 源码二：EurekaServer启动之EurekaServer上下文EurekaClient创建
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2020/01/04/%5BNexflix%20Eureka%20%E6%BA%90%E7%A0%81%E5%9B%9B%EF%BC%9AEurekaClient%E5%90%AF%E5%8A%A8%E8%A6%81%E7%BB%8F%E5%8E%86%E5%93%AA%E4%BA%9B%E8%89%B0%E9%9A%BE%E9%99%A9%E9%98%BB%EF%BC%9F%5D/" rel="prev" title="Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？">
+                  Nexflix Eureka 源码四：EurekaClient启动要经历哪些艰难险阻？ <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Nexflix-Eureka-源码三：EurekaServer启动之完成上下文构建及EurekaServer总结"><span class="nav-number">1.</span> <span class="nav-text">[Nexflix Eureka 源码三：EurekaServer启动之完成上下文构建及EurekaServer总结]</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.0.1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initEurekaServerContext"><span class="nav-number">1.0.2.</span> <span class="nav-text">initEurekaServerContext</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EurekaServer启动流程总结"><span class="nav-number">1.0.3.</span> <span class="nav-text">EurekaServer启动流程总结</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="沈小布"
+      src="/images/head.gif">
+  <p class="site-author-name" itemprop="name">沈小布</p>
+  <div class="site-description" itemprop="description">种一棵树最好的时间是十年前 其次是现在</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">38</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/yourname" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/mailto:yourname@gmail.com" title="E-Mail → mailto:yourname@gmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/yourname" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://plus.google.com/yourname" title="Google → https:&#x2F;&#x2F;plus.google.com&#x2F;yourname" rel="noopener" target="_blank"><i class="fa fa-fw fa-google"></i>Google</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">沈小布</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">201k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:03</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+
+  <script>
+      var now = new Date(); 
+      function createtime() { 
+          var grt= new Date("03/12/2019 12:00:00");//此处修改你的建站时间或者网站上线时间 
+          now.setTime(now.getTime()+250); 
+          days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+          hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+          if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+          mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+          seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+          snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+          document.getElementById("timeDate").innerHTML = "本站已安全运行 "+dnum+" 天 "; 
+          document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+      } 
+  setInterval("createtime()",250);
+  </script>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
